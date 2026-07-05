@@ -1,0 +1,87 @@
+{
+  "id": "1:200",
+  "name": "Button",
+  "type": "INSTANCE",
+  "scrollBehavior": "SCROLLS",
+  "componentId": "1:50",
+  "componentProperties": {
+    "Label#0:0": {
+      "type": "TEXT",
+      "value": "Verify"
+    }
+  },
+  "overrides": [
+    { "id": "1:200", "overriddenFields": ["componentProperties"] }
+  ],
+  "blendMode": "PASS_THROUGH",
+  "clipsContent": true,
+  "fills": [
+    {
+      "blendMode": "NORMAL",
+      "type": "SOLID",
+      "color": { "r": 0.0, "g": 0.231372549, "b": 0.2745098039, "a": 1.0 }
+    }
+  ],
+  "strokes": [],
+  "strokeWeight": 1.0,
+  "strokeAlign": "INSIDE",
+  "cornerRadius": 10.0,
+  "absoluteBoundingBox": { "x": 132.0, "y": 506.0, "width": 139.3777771, "height": 32.0 },
+  "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+  "relativeTransform": [
+    [1.0, 0.0, 132.0],
+    [0.0, 1.0, 506.0]
+  ],
+  "size": { "x": 139.3777771, "y": 32.0 },
+  "effects": [],
+  "interactions": [],
+  "children": [
+    {
+      "id": "1:201",
+      "name": "Verify",
+      "type": "TEXT",
+      "scrollBehavior": "SCROLLS",
+      "blendMode": "PASS_THROUGH",
+      "fills": [
+        {
+          "blendMode": "NORMAL",
+          "type": "SOLID",
+          "color": { "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0 }
+        }
+      ],
+      "fillGeometry": [],
+      "strokes": [],
+      "strokeWeight": 1.0,
+      "strokeAlign": "OUTSIDE",
+      "strokeGeometry": [],
+      "absoluteBoundingBox": { "x": 178.0, "y": 515.0, "width": 47.0, "height": 15.0 },
+      "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+      "relativeTransform": [
+        [1.0, 0.0, 46.0],
+        [0.0, 1.0, 9.0]
+      ],
+      "size": { "x": 47.0, "y": 15.0 },
+      "characters": "Verify",
+      "characterStyleOverrides": [],
+      "styleOverrideTable": {},
+      "lineTypes": ["NONE"],
+      "lineIndentations": [0],
+      "style": {
+        "fontFamily": "Circular Std",
+        "fontPostScriptName": "CircularStd-Medium",
+        "fontStyle": "Medium",
+        "fontWeight": 500,
+        "textAutoResize": "NONE",
+        "fontSize": 14.771,
+        "textAlignHorizontal": "CENTER",
+        "textAlignVertical": "CENTER",
+        "letterSpacing": -0.1477,
+        "lineHeightPx": 20.6794,
+        "lineHeightPercent": 100.0,
+        "lineHeightUnit": "INTRINSIC_%"
+      },
+      "effects": [],
+      "interactions": []
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "1:50",
+  "name": "Button=Primary, Dark Mode=Off",
+  "type": "COMPONENT",
+  "scrollBehavior": "SCROLLS",
+  "blendMode": "PASS_THROUGH",
+  "clipsContent": true,
+  "fills": [
+    {
+      "blendMode": "NORMAL",
+      "type": "SOLID",
+      "color": { "r": 0.0, "g": 0.231372549, "b": 0.2745098039, "a": 1.0 }
+    }
+  ],
+  "strokes": [],
+  "strokeWeight": 1.0,
+  "strokeAlign": "INSIDE",
+  "cornerRadius": 10.0,
+  "absoluteBoundingBox": { "x": 0.0, "y": 0.0, "width": 139.3777771, "height": 32.0 },
+  "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+  "relativeTransform": [
+    [1.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0]
+  ],
+  "size": { "x": 139.3777771, "y": 32.0 },
+  "effects": [],
+  "interactions": [],
+  "children": []
+}

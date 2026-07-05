@@ -1,0 +1,41 @@
+{
+  "id": "1:300",
+  "name": "Group 16",
+  "type": "GROUP",
+  "scrollBehavior": "SCROLLS",
+  "blendMode": "PASS_THROUGH",
+  "clipsContent": false,
+  "absoluteBoundingBox": { "x": 14.0, "y": 167.0, "width": 366.7005615, "height": 250.0000153 },
+  "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+  "relativeTransform": [
+    [1.0, 0.0, 14.0],
+    [0.0, 1.0, 167.0]
+  ],
+  "size": { "x": 366.7005615, "y": 250.0000153 },
+  "effects": [],
+  "interactions": [],
+  "children": [
+    {
+      "id": "1:301",
+      "name": "Frame 7",
+      "type": "FRAME",
+      "scrollBehavior": "SCROLLS",
+      "blendMode": "PASS_THROUGH",
+      "clipsContent": true,
+      "fills": [],
+      "strokes": [],
+      "strokeWeight": 1.0,
+      "strokeAlign": "INSIDE",
+      "absoluteBoundingBox": { "x": 14.0, "y": 224.1977806, "width": 366.7005473, "height": 250.0000077 },
+      "constraints": { "vertical": "TOP", "horizontal": "LEFT" },
+      "relativeTransform": [
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 57.19778061]
+      ],
+      "size": { "x": 366.7005473, "y": 250.0000077 },
+      "effects": [],
+      "interactions": [],
+      "children": []
+    }
+  ]
+}

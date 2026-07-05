@@ -1,0 +1,10 @@
+{
+  "1:50": {
+    "key": "a1b2c3d4-button-primary-dark-off",
+    "name": "Button=Primary, Dark Mode=Off",
+    "description": "",
+    "remote": true,
+    "componentSetId": "1:49",
+    "documentationLinks": []
+  }
+}

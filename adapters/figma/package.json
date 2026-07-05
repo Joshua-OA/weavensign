@@ -1,0 +1,32 @@
+{
+  "name": "@weavensign/adapter-figma",
+  "version": "0.1.0",
+  "description": "Mechanical translation from the Figma REST API's node JSON into the canonical Design DOM. No inference — that's the normalization layer's job.",
+  "license": "GPL-3.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@weavensign/schema": "0.2.0",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "5.5.4",
+    "vitest": "2.0.5"
+  }
+}
