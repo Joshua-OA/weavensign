@@ -6,7 +6,8 @@
   "license": "GPL-3.0",
   "workspaces": [
     "schema",
-    "adapters/figma"
+    "adapters/figma",
+    "adapters/penpot"
   ],
   "engines": {
     "node": ">=20"

@@ -1,7 +1,7 @@
 {
-  "name": "@weavensign/adapter-figma",
+  "name": "@weavensign/adapter-penpot",
   "version": "0.1.0",
-  "description": "Mechanical translation from the Figma REST API's node JSON into the canonical Design DOM. No inference — that's the normalization layer's job.",
+  "description": "Mechanical translation from the Penpot API's flat shape-object graph into the canonical Design DOM. No inference — that's the normalization layer's job.",
   "license": "GPL-3.0",
   "type": "module",
   "main": "./dist/index.js",

@@ -1,0 +1,185 @@
+{
+  "id": "page-1",
+  "name": "Page 1",
+  "objects": {
+    "00000000-0000-0000-0000-000000000000": {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "name": "Root Frame",
+      "type": "frame",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 1024,
+      "rotation": 0,
+      "parentId": null,
+      "frameId": null,
+      "shapes": ["frame-1", "instance-frame-1"]
+    },
+    "frame-1": {
+      "id": "frame-1",
+      "name": "card",
+      "type": "frame",
+      "x": 100,
+      "y": 100,
+      "width": 300,
+      "height": 200,
+      "rotation": 0,
+      "transform": { "a": 1, "b": 0, "c": 0, "d": 1, "e": 0, "f": 0 },
+      "parentId": "00000000-0000-0000-0000-000000000000",
+      "frameId": "00000000-0000-0000-0000-000000000000",
+      "rx": 8,
+      "fills": [{ "fillColor": "#1e1e2e", "fillOpacity": 1 }],
+      "strokes": [],
+      "shapes": ["rect-1", "circle-1", "path-1", "text-1", "group-1"]
+    },
+    "rect-1": {
+      "id": "rect-1",
+      "name": "bg",
+      "type": "rect",
+      "x": 100,
+      "y": 100,
+      "width": 300,
+      "height": 200,
+      "rotation": 0,
+      "transform": { "a": 1, "b": 0, "c": 0, "d": 1, "e": 0, "f": 0 },
+      "parentId": "frame-1",
+      "frameId": "frame-1",
+      "rx": 0,
+      "ry": 0,
+      "r1": 0,
+      "r2": 0,
+      "r3": 0,
+      "r4": 0,
+      "fills": [],
+      "strokes": [
+        {
+          "strokeStyle": "solid",
+          "strokeColor": "#353945",
+          "strokeOpacity": 1,
+          "strokeAlignment": "center",
+          "strokeWidth": 1
+        }
+      ]
+    },
+    "circle-1": {
+      "id": "circle-1",
+      "name": "Circle-12",
+      "type": "circle",
+      "x": 124,
+      "y": 120,
+      "width": 24,
+      "height": 24,
+      "rotation": 0,
+      "transform": { "a": 1, "b": 0, "c": 0, "d": 1, "e": 0, "f": 0 },
+      "parentId": "frame-1",
+      "frameId": "frame-1",
+      "strokes": [],
+      "fills": [{ "fillColor": "#c9cfd9", "fillOpacity": 1 }]
+    },
+    "path-1": {
+      "id": "path-1",
+      "name": "Circle-42",
+      "type": "path",
+      "x": null,
+      "y": null,
+      "width": null,
+      "height": null,
+      "rotation": 0,
+      "selrect": { "x": 195, "y": 194, "width": 90, "height": 125.018 },
+      "transform": { "a": 1, "b": 0, "c": 0, "d": 1, "e": 0, "f": 0 },
+      "parentId": "frame-1",
+      "frameId": "frame-1",
+      "content": "M285.0,229.018C285.0,229.018,285.0,319.018,285.0,319.018C235.328,319.018,195.0,278.69,195.0,229.018C195.0,216.6,197.521,204.766,202.077,194.0C202.077,194.0,285.0,229.018,285.0,229.018",
+      "strokes": [],
+      "fills": [{ "fillColor": "#4a4f5f", "fillOpacity": 1 }]
+    },
+    "text-1": {
+      "id": "text-1",
+      "name": "label",
+      "type": "text",
+      "x": 122,
+      "y": 250,
+      "width": 244,
+      "height": 17,
+      "rotation": 0,
+      "transform": { "a": 1, "b": 0, "c": 0, "d": 1, "e": 0, "f": 0 },
+      "parentId": "frame-1",
+      "frameId": "frame-1",
+      "content": {
+        "type": "root",
+        "children": [
+          {
+            "type": "paragraph-set",
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "text": "website_presentation.doc",
+                    "fontFamily": "Roboto",
+                    "fontSize": "13",
+                    "fontWeight": "400",
+                    "fontStyle": "normal",
+                    "textAlign": "left",
+                    "textDecoration": "none",
+                    "letterSpacing": "0",
+                    "lineHeight": "1.2",
+                    "fills": [{ "fillColor": "#c9cfd9", "fillOpacity": 1 }]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "group-1": {
+      "id": "group-1",
+      "name": "icon group",
+      "type": "group",
+      "x": 200,
+      "y": 150,
+      "width": 66.3,
+      "height": 80,
+      "rotation": 0,
+      "transform": { "a": 1, "b": 0, "c": 0, "d": 1, "e": 0, "f": 0 },
+      "parentId": "frame-1",
+      "frameId": "frame-1",
+      "shapes": ["group-child-1"]
+    },
+    "group-child-1": {
+      "id": "group-child-1",
+      "name": "Circle-3",
+      "type": "circle",
+      "x": 200,
+      "y": 150,
+      "width": 20,
+      "height": 20,
+      "rotation": 0,
+      "transform": { "a": 1, "b": 0, "c": 0, "d": 1, "e": 0, "f": 0 },
+      "parentId": "group-1",
+      "frameId": "frame-1",
+      "strokes": [],
+      "fills": [{ "fillColor": "#ffffff", "fillOpacity": 1 }]
+    },
+    "instance-frame-1": {
+      "id": "instance-frame-1",
+      "name": "message-4",
+      "type": "frame",
+      "x": 835,
+      "y": 1406,
+      "width": 315,
+      "height": 65,
+      "rotation": 0,
+      "transform": { "a": 1, "b": 0, "c": 0, "d": 1, "e": 0, "f": 0 },
+      "parentId": "00000000-0000-0000-0000-000000000000",
+      "frameId": "00000000-0000-0000-0000-000000000000",
+      "componentId": "component-def-1",
+      "componentFile": "file-1",
+      "componentRoot": true,
+      "shapeRef": "component-def-1",
+      "fills": [],
+      "shapes": []
+    }
+  }
+}

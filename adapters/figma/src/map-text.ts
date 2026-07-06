@@ -20,6 +20,22 @@ const FONT_STYLE_MAP: Record<string, "normal" | "italic"> = {
   "Bold Italic": "italic",
 };
 
+const TEXT_DECORATION_MAP = {
+  NONE: "none",
+  UNDERLINE: "underline",
+  STRIKETHROUGH: "strikethrough",
+} as const;
+
+const TEXT_CASE_MAP = {
+  ORIGINAL: "none",
+  UPPER: "upper",
+  LOWER: "lower",
+  TITLE: "title",
+  // Canonical TextStyle has no small-caps variant yet; closest available mapping.
+  SMALL_CAPS: "upper",
+  SMALL_CAPS_FORCED: "upper",
+} as const;
+
 /**
  * Maps Figma's flat `characters` + single `style` into one canonical TextRun. Figma text
  * nodes can carry multiple style ranges via `characterStyleOverrides` + `styleOverrideTable`
@@ -39,8 +55,8 @@ export function mapTextContent(characters: string, style: RawTextStyle): TextCon
           fontSizePx: style.fontSize,
           lineHeightPx: style.lineHeightPx,
           letterSpacingPx: style.letterSpacing,
-          textDecoration: "none",
-          textCase: "none",
+          textDecoration: style.textDecoration ? TEXT_DECORATION_MAP[style.textDecoration] : "none",
+          textCase: style.textCase ? TEXT_CASE_MAP[style.textCase] : "none",
         },
       },
     ],

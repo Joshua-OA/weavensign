@@ -100,3 +100,116 @@ angles (npm's resolver vs. runtime-readable constant).
 `package.json`'s version in the same commit/edit. Consider whether these two constants
 should be merged into one source of truth later (e.g. reading version from package.json
 at build time) once there's a second consumer to prove out the pain point.
+
+---
+
+## 2026-07-06 (session 2, continued)
+
+### 006 — Two Figma text fields were hardcoded to a default because the one sample fixture never exercised them
+
+**What happened:** `map-text.ts` mapped `textDecoration`/`textCase` to a literal `"none"`
+for every text node, instead of reading Figma's real fields. Root cause: the one real
+Figma text node I sampled while building fixtures (`get started` button label) happened
+to have no underline/uppercase styling, so Figma's REST API omitted those two fields
+entirely from that response (Figma only includes them when non-default). I wrote
+`RawTextStyleSchema` to match only what I'd actually seen in that one sample, then
+defaulted the mapper output for fields the schema didn't even declare — instead of
+checking Figma's API docs for the full field list before finalizing the raw schema.
+
+**How found:** User asked, correctly and pointedly, why hardcoded values existed at all
+in a mapper whose entire purpose is "fetch what exists" — the right question to ask any
+time a mapper function contains a literal instead of a field read.
+
+**Fix:** Added `textDecoration` (`NONE`/`UNDERLINE`/`STRIKETHROUGH`) and `textCase`
+(`ORIGINAL`/`UPPER`/`LOWER`/`TITLE`/`SMALL_CAPS`/`SMALL_CAPS_FORCED`) to
+`RawTextStyleSchema` per Figma's documented API, wired the mapper to translate real
+values, and added `map-text.test.ts` with explicit cases for each non-default value so
+this can't silently regress. Fallback to `"none"` only happens when Figma's response
+itself omits the field (a real default, not an adapter shortcut).
+
+**Lesson:** One real sample proves a *shape* is roughly right; it does not prove a schema
+is *complete*. Before finalizing a raw-type schema for an external API, cross-check the
+full field list against that API's docs (not just the one response captured), especially
+for fields whose default value causes the API to omit them entirely — those are exactly
+the fields a single sample will never surface. Also: any hardcoded literal standing in
+for a mapped field is worth a second look — if it's not commented as "no data available
+for this yet" (like the multi-run text gap already was), it might just be a fetch that
+was never finished. [[001]]
+
+### 007 — Penpot's default response format is Transit-JSON, not plain JSON
+
+**What happened:** First live call to Penpot's `POST /api/rpc/command/get-file` returned
+a wire format like `["^ ","~:features",["~#set",[...]],...]` — Clojure's Transit-JSON
+encoding (`~:` keyword prefixes, `~#set`, `~u` for uuids, `~m` for instants). Parsing that
+directly would have meant writing a Transit decoder before any adapter code could start.
+
+**Fix:** Adding `Accept: application/json` to the request header switches Penpot's API to
+plain camelCase JSON. Confirmed via `curl -I` that this is a real content-negotiation
+path, not a fluke — Penpot's backend is Clojure-native and Transit is its default, but it
+honors a plain-JSON request like any REST API would.
+
+**Lesson:** When a new external API's first response looks like unfamiliar wire-format
+noise, check for content-negotiation headers before writing a custom parser — many
+non-JS-native backends (Clojure/Transit, Erlang/BERT, etc.) default to their own
+ecosystem's serialization but support `Accept: application/json` as an escape hatch.
+
+### 008 — Penpot's shape graph is flat (id map + parentId/shapes[]), not nested like Figma's
+
+**What happened:** Figma's REST API nests children directly inside each node's
+`children` array — the whole document is one recursive JSON tree. Penpot's page data is
+the opposite: `data.pagesIndex[pageId].objects` is a flat `{id: shape}` map; every shape,
+however deeply nested visually, is a sibling entry, connected only by `parentId` (up) and
+`shapes: [childId, ...]` (down, on container types).
+
+**Fix:** `parse-penpot-page.ts` walks from the synthetic root frame
+(`00000000-0000-0000-0000-000000000000`) through `shapes` arrays, looking each child id
+up in the flat map, to reconstruct the same nested `DesignNode` tree shape the Figma
+adapter produces directly. This also drove the parent-relative position math (`009`
+below) — the flat graph has no implicit nesting to inherit coordinate space from, so the
+walk has to carry the resolved parent's absolute box down explicitly at each level.
+
+**Lesson:** Don't assume a second adapter for "the same kind of thing" (design tool APIs)
+shares structural shape with the first. Two REST APIs describing visually identical
+documents can have completely different data models (recursive tree vs. flat graph);
+verify structure before designing the mapping function's signature, not after.
+
+### 009 — Penpot has no parent-relative position field; computed via top-down absolute-box subtraction
+
+**What happened:** Canonical `PositionSchema` (locked in during Figma adapter work, see
+`001`) requires parent-relative local coordinates. Figma provides this directly via
+`relativeTransform`. Penpot shapes only carry page-absolute `x`/`y` (or `selrect` for
+`path` shapes, which have null x/y/width/height) — there is no parent-relative field at
+all in Penpot's data model.
+
+**Fix:** `map-geometry.ts`'s `mapGeometry(shape, parentBox)` takes the resolved parent's
+absolute box as an explicit second argument and computes `localX = shape.x - parent.x`
+(same for y). `parse-penpot-page.ts` and `map-node.ts`'s `mapChildren` thread each
+container's own absolute box down to its children as they're walked — this only works
+because of the flat-graph walk in `008`, which already has to resolve each shape's parent
+before recursing into its children.
+
+**Lesson:** When two adapters must produce the *same* canonical geometry contract from
+sources with different native coordinate spaces, the derivation logic belongs in the
+adapter, not the schema — confirmed with the user before building this (see conversation
+in session 2) rather than silently picking a convention. Keeping `PositionSchema` itself
+unchanged, and doing the absolute-to-relative math per-adapter, is what let both adapters
+converge on identical output shapes for visually identical designs.
+
+### 010 — Penpot component instance = a `frame` shape with `componentId` + `componentRoot`, not a distinct type
+
+**What happened:** Figma has a genuinely separate `INSTANCE` node type. Penpot has no
+such type — a component instance is just a regular `frame` shape that additionally
+carries `componentId` (pointing at the definition), `componentRoot: true`, and
+`componentFile` (which file the definition lives in, for cross-library references).
+
+**Fix:** `map-node.ts`'s `"frame"` case checks `shape.componentId && shape.componentRoot`
+before falling through to a plain `frame` mapping, and produces a `component-instance`
+DesignNode in that branch instead. Cross-file component references
+(`componentFile` != current file) aren't resolved yet — tracked as a known gap in the
+adapter's README rather than silently mapped wrong.
+
+**Lesson:** "Does this API have an equivalent node type" is the wrong question when
+porting a mapping pattern between two adapters for structurally different sources — the
+right question is "does this API have equivalent *information*, however it's shaped."
+Penpot has the same instance/definition relationship as Figma, just encoded as fields on
+an existing type rather than a new type.

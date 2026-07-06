@@ -1,0 +1,9 @@
+{
+  "component-def-1": {
+    "id": "component-def-1",
+    "name": "message-card",
+    "path": "",
+    "mainInstanceId": "component-def-1",
+    "mainInstancePage": "page-1"
+  }
+}
