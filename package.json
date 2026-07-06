@@ -16,6 +16,15 @@
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "fetch:figma": "tsx scripts/fetch-figma-live.ts",
+    "fetch:penpot": "tsx scripts/fetch-penpot-live.ts"
+  },
+  "dependencies": {
+    "@weavensign/adapter-figma": "0.1.0",
+    "@weavensign/adapter-penpot": "0.1.0"
+  },
+  "devDependencies": {
+    "tsx": "4.23.0"
   }
 }

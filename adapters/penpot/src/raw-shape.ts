@@ -4,6 +4,22 @@ import { RawFillSchema, RawStrokeSchema } from "./raw-paint.js";
 import { RawTextContentSchema } from "./raw-text.js";
 
 /**
+ * Some `rect` shapes (observed live, not in initial sampling) carry a `content` field
+ * shaped as a list of path commands (move-to/line-to/curve-to with x/y params) instead
+ * of the plain SVG string `path` shapes use — likely Penpot's newer custom-outline/mask
+ * representation. This adapter doesn't map it (rects still get their outline from
+ * synthesizeRectPath); the schema just needs to accept the shape without erroring so one
+ * rect with this field doesn't fail the whole page.
+ */
+const RawPathCommandContentSchema = z.array(
+  z.object({
+    command: z.string(),
+    relative: z.boolean().optional(),
+    params: z.record(z.string(), z.number()).optional(),
+  }),
+);
+
+/**
  * Penpot's shape types that this adapter maps. BOOL (boolean operations) is intentionally
  * excluded for now — it has no equivalent in the canonical schema yet and is rejected at
  * parse time rather than guessed at (a boolean op's rendered result is path-shaped, but
@@ -26,7 +42,14 @@ export const RawShapeSchema = z.object({
   y: z.number().nullable(),
   width: z.number().nullable(),
   height: z.number().nullable(),
-  rotation: z.number().default(0),
+  // Observed live: Penpot sends explicit `null` here (not just omitting the field) on
+  // some shapes. z.number().default(0) only fills in `undefined`, not `null`, so this
+  // needs an explicit transform to collapse both to 0.
+  rotation: z
+    .number()
+    .nullable()
+    .optional()
+    .transform((value) => value ?? 0),
   selrect: RawSelrectSchema.optional(),
   transform: RawTransformSchema.optional(),
   parentId: z.string().nullable(),
@@ -38,8 +61,8 @@ export const RawShapeSchema = z.object({
   ry: z.number().optional(),
   hidden: z.boolean().optional(),
   blocked: z.boolean().optional(),
-  /** SVG-compatible path data string; present on `path` shapes only. */
-  content: z.union([z.string(), RawTextContentSchema]).optional(),
+  /** SVG-compatible path data string on `path` shapes; rich-text tree on `text` shapes; path-command list on some `rect` shapes (unmapped, see RawPathCommandContentSchema). */
+  content: z.union([z.string(), RawTextContentSchema, RawPathCommandContentSchema]).optional(),
   /** Present when this shape is the root of a component instance (Penpot has no separate INSTANCE type — a frame doubles as the instance wrapper). */
   componentId: z.string().optional(),
   componentFile: z.string().optional(),

@@ -213,3 +213,56 @@ porting a mapping pattern between two adapters for structurally different source
 right question is "does this API have equivalent *information*, however it's shaped."
 Penpot has the same instance/definition relationship as Figma, just encoded as fields on
 an existing type rather than a new type.
+
+---
+
+## 2026-07-06 (session 3 — live testing against real, unsampled pages)
+
+Both adapters had passed every fixture test. User asked to actually run them against live
+API data with a small runner script (`scripts/fetch-figma-live.ts`,
+`scripts/fetch-penpot-live.ts`) rather than stopping at fixture-only proof. This
+immediately found two real bugs that hand-picked sampling had missed — both were on
+*other* shapes in the same file than the ones originally sampled, on pages/nodes never
+individually inspected before.
+
+### 011 — Some Penpot `rect` shapes carry a `content` field shaped as a path-command list, not the plain string `path` shapes use
+
+**What happened:** `RawShapeSchema.content` only allowed `string | RawTextContent`
+(matching the one `path` shape and one `text` shape sampled during fixture-building).
+Running the adapter live against a full real page (not the hand-picked fixture) hit a
+`rect` shape with `content: [{command: "move-to", params: {x, y}}, {command: "line-to",
+...}, ...]` — a third content shape never seen. Parsing failed for the entire page
+(Zod's `invalid_union` on one field short-circuited the whole `objects` map parse).
+
+**Fix:** Added `RawPathCommandContentSchema` (array of `{command, relative?, params?}`)
+as a third union member on `content`. The adapter doesn't map this shape's data yet
+(rects still get their outline from `synthesizeRectPath`, see `README.md`) — the schema
+just needs to accept it without erroring, so one shape with this field doesn't fail
+validation for every other shape on the same page.
+
+**Lesson:** A single malformed/unusual field on one node, in a schema validating an
+entire flat object *map*, fails the whole map — not just that one node — unless the
+union covers every real variant. This is a direct consequence of validating the whole
+page as one object (see `008`); worth remembering when normalization/MCP work later
+needs partial-success semantics (map what validates, report what doesn't, rather than
+all-or-nothing).
+
+### 012 — Penpot's `rotation` field can be explicit `null`, not just absent
+
+**What happened:** `rotation: z.number().default(0)` assumed the field would either be a
+real number or omitted entirely (Zod's `.default()` only fills in for `undefined`). A
+real shape on a different, unsampled page (`Main components`) had `rotation: null`
+explicitly — `.default()` doesn't catch that, so Zod rejected it as `expected number,
+received null`.
+
+**Fix:** Changed to `z.number().nullable().optional().transform((v) => v ?? 0)`, which
+collapses both `null` and `undefined` to `0`.
+
+**Lesson:** `.default()` in Zod only helps with a *missing* key, not an *explicitly null*
+one — APIs that distinguish "omitted" from "present but null" (or don't distinguish
+consistently, as here) need `.nullable()` composed in explicitly, every time, not just
+where a single sample happened to show it. Same root lesson as `006`/`001`: a schema is a
+hypothesis about the full range of real values, not just the ones seen so far — and the
+fix for that isn't "sample more," it's "test against a live, full, previously-unseen
+dataset before calling an adapter done," which is exactly why this session's runner
+scripts were worth building even though the code they exercise had already "passed."
