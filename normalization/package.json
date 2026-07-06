@@ -1,0 +1,33 @@
+{
+  "name": "@weavensign/normalization",
+  "version": "0.1.0",
+  "description": "Role inference: resolves semantic role (button, card, icon, ...) from canonical DesignNode trees. Heuristics first, ML/LLM escalation for ambiguous cases only.",
+  "license": "GPL-3.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.typecheck.json",
+    "test": "vitest run",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@weavensign/schema": "0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.15",
+    "typescript": "5.5.4",
+    "vitest": "2.0.5"
+  }
+}

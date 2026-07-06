@@ -1,0 +1,5 @@
+[
+  { "nodeId": "1", "role": "button", "confidence": 1 },
+  { "nodeId": "2", "role": "icon", "confidence": 1 },
+  { "nodeId": "3", "role": "other", "confidence": 1 }
+]

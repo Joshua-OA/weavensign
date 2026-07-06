@@ -1,0 +1,21 @@
+{
+  "name": "@weavensign/eval",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Hand-labeled fixtures + scoring for the normalization layer's accuracy (context.md §7)",
+  "license": "GPL-3.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@weavensign/normalization": "0.1.0",
+    "@weavensign/schema": "0.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.15",
+    "typescript": "5.5.4",
+    "vitest": "2.0.5"
+  }
+}
