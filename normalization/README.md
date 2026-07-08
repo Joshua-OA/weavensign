@@ -36,16 +36,38 @@ text length, and a small common-label-word dictionary), `classify-container.ts`
 package's public entry point). Each pure classifier has its own unit tests.
 
 Scored against `/eval`'s labeled fixtures via `npx tsx eval/run-heuristic.ts` (per-role
-precision/recall). On the Figma fixture, after two iterations (see learning_v0.md #019,
-#020): button P1.00/R0.79, heading P1.00/R0.60, badge P1.00/R0.94, body-text R1.00, icon
-P1.00/R0.67, image R0.97. A third fixture (`penpot-dashboard-ui.json`, real Penpot app UI)
-was added in learning_v0.md #022 specifically to test whether these results generalize
-past Figma's authoring idioms — they don't yet: button R0.00, avatar R0.00, nav-item
-P0.00/R0.00 on that fixture, because the heuristic's button/nav detection is text-word-based
-(tuned to Figma's labels) and has no avatar signal at all. This is the current known gap —
-`classify-container.ts` needs a real button-detection path and an avatar signal, and
-nav-item detection needs to consider icon-group nav items, not just text labels, before
-re-scoring all three fixtures together. **Those eval labels are still an unreviewed AI
-draft, not human-verified ground truth** (see `/eval/README.md` Status) — treat every
-number above as a rough baseline to improve from, not a proven accuracy claim, until the
-labels are reviewed and more varied fixtures are added.
+precision/recall, rebuild the package first with `npm run build` in `/normalization` —
+`run-heuristic.ts` imports the built `@weavensign/normalization` package, not source).
+
+Three fixtures: `figma-ecommerce-landing.json` (Figma, button/card/nav-heavy),
+`penpot-logo-artwork.json` (Penpot, pure-artwork/image-only, no interactive UI),
+`penpot-dashboard-ui.json` (Penpot, real app dashboard UI — button/avatar/input-field/
+nav-item coverage). The dashboard fixture was added (learning_v0.md #022) specifically to
+prove whether a heuristic tuned only against the first two fixtures generalizes to a
+different tool's structural authoring conventions — initially it didn't (button/avatar/
+nav-item all scored ~0 on first contact, #022), which drove structural (not textual)
+detection signals for all three (#023) plus a `bg`-named/hairline-shape fallback fix (#024)
+and a parent-context signal so a button's own background rect isn't miscounted as `image`
+(current pass — `classifyVector` now takes the node's parent, matching the same
+"full-width background next to one text child" shape `classify-container.ts`'s
+`looksLikeButton` already uses on the container itself).
+
+Current per-role numbers (all three fixtures, `npx tsx eval/run-heuristic.ts`): Figma —
+button P1.00/R0.79, card P0.79/R0.79, icon P1.00/R0.67, nav-item P0.89/R0.67, heading
+P1.00/R0.60, body-text R1.00, image R0.97, badge P1.00/R0.94, other P0.86/R0.61. Penpot
+dashboard — avatar P1.00/R1.00, nav-item P0.89/R1.00, button P0.75/R0.50, card P0.72/R0.62,
+badge P0.97/R0.77, icon P0.76/R0.60, body-text R0.97, image P0.39/R0.68, other P0.39/R0.38,
+input-field R0.00 (no signal exists for this role at all yet), heading R0.21 (mostly
+draft-label noise on tiny UI micro-labels, see #024 — not chased). Penpot logo-artwork —
+image P1.00/R0.99 (this fixture has almost no other roles present).
+
+**Known remaining gaps**, in rough priority order: (1) `image` false-positives on the
+dashboard fixture (large flat-color background rects that aren't button-shaped, and
+non-`bg`-named decorative panels) still need a real parent-context or fill-data signal —
+`classify-vector.ts` only threads through a node's direct parent today, not full ancestry
+or fill color; (2) no `input-field` signal exists at all; (3) `other` precision/recall on
+the dashboard fixture (0.39/0.38) is still weak — largely the same background-rect
+confusion as (1). **Those eval labels are still an unreviewed AI draft, not
+human-verified ground truth** (see `/eval/README.md` Status) — treat every number above as
+a rough baseline to improve from, not a proven accuracy claim, until the labels are
+reviewed and more varied fixtures are added.

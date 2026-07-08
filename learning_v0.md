@@ -711,3 +711,43 @@ issues, and forcing a heuristic change to chase noisy labels would have been a r
 disguised as progress. Distinguishing "real signal the heuristic is missing" from "the
 label itself is questionable" required going back to the source node every time, not
 just trusting the aggregate score's shape.
+
+### 025 — Closed `024`'s deferred parent-context gap: `classifyVector` now takes the node's parent
+
+**What happened:** `024` explicitly deferred one gap: a button's own background rect
+(Penpot's `Rect-9`, sibling of the button's text label, ground-truth `other`) was
+misclassified as `image`, because `classify-vector.ts`'s signature only receives sibling
+count, never parent — it can't tell "this rect is a button's own backdrop" from "this rect
+is real image content." Confirmed via direct query (not assumed) that all three real
+`Rect-9` instances in the dashboard fixture sit inside a 2-child (`vector` + `text`)
+`Button-N` component-instance, same shape `classify-container.ts`'s `looksLikeButton`
+already detects on the parent — and checked for collisions before writing the rule: one
+`bg-5` vector matches the same 2-child/full-width shape but is ground-truth `icon` (a
+named-background shape per `024`, correctly handled by the existing `isNamedBackgroundShape`
+check firing first in the cascade), and no real `image`-truthed vector in either Penpot
+fixture happens to sit in a 2-child button-shaped parent.
+
+**Fix:** Threaded `parent: DesignNode | undefined` through `classify-node.ts`'s
+`classifySiblingGroup`/`classifyOne` (previously only `nodes`/`siblings` were passed) down
+into `classifyVector(node, vectorSiblingCount, parent)`. Added `isButtonBackgroundShape` —
+re-runs `looksLikeButton`'s exact structural check (2 children, one text, one non-text
+spanning ≥85% of parent width, pill-height range) from the vector's own side, placed in the
+cascade *after* `isNamedBackgroundShape` so a real `bg`-named shape still wins, before the
+generic hairline/image fallback. Also rebuilt `npx tsc -p tsconfig.json` in `/normalization`
+before re-scoring — `eval/run-heuristic.ts` imports the built `@weavensign/normalization`
+package, not source, so a code change with no rebuild silently re-scores the *old* behavior
+(caught this firsthand: first re-score run showed zero change until the rebuild).
+
+**Score deltas (dashboard fixture only; Figma and logo-artwork fixtures bit-identical,
+confirmed, since neither has this button-shaped-parent pattern):** `other` tp 15→18
+(P0.35/R0.31 → P0.39/R0.38), `image` fp 39→36. Small, deliberately narrow-scope fix.
+
+**Lesson:** Two points. (1) `classifyOne`'s "classifies one node in context of its
+siblings" doc comment was accurate but incomplete the whole time — sibling context alone
+was never enough for this gap, exactly as `024` already flagged; the fix is structurally
+identical to `009`'s parent-geometry-context pattern, now shown to apply at the
+normalization layer too, not just adapters. (2) When a scoring script imports a *built*
+package rather than source (check the import path before assuming "no change" means "no
+effect") — a silent stale-build read looks exactly like a real negative result if you
+don't check for it, and would have been mis-reported as "the fix didn't work" without
+catching the rebuild step first.

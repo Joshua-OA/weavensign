@@ -8,8 +8,8 @@ function assertNever(value: never): never {
   throw new Error(`Unhandled DesignNode type: ${JSON.stringify(value)}`);
 }
 
-/** Classifies one node in context of its siblings, without recursing into children. */
-function classifyOne(node: DesignNode, siblings: DesignNode[]): RoleAssignment {
+/** Classifies one node in context of its siblings and parent, without recursing into children. */
+function classifyOne(node: DesignNode, siblings: DesignNode[], parent: DesignNode | undefined): RoleAssignment {
   switch (node.type) {
     case "text": {
       const { role, confidence } = classifyText(node);
@@ -17,7 +17,7 @@ function classifyOne(node: DesignNode, siblings: DesignNode[]): RoleAssignment {
     }
     case "vector": {
       const vectorSiblingCount = siblings.filter((sibling) => sibling.type === "vector").length;
-      const { role, confidence } = classifyVector(node, vectorSiblingCount);
+      const { role, confidence } = classifyVector(node, vectorSiblingCount, parent);
       return { nodeId: node.id, role, confidence };
     }
     case "frame":
@@ -48,20 +48,24 @@ function childrenOf(node: DesignNode): DesignNode[] {
 }
 
 /** Classifies every node in one sibling group, then recurses into each node's children. */
-function classifySiblingGroup(nodes: DesignNode[], assignments: RoleAssignment[]): void {
+function classifySiblingGroup(
+  nodes: DesignNode[],
+  parent: DesignNode | undefined,
+  assignments: RoleAssignment[],
+): void {
   for (const node of nodes) {
-    assignments.push(classifyOne(node, nodes));
-    classifySiblingGroup(childrenOf(node), assignments);
+    assignments.push(classifyOne(node, nodes, parent));
+    classifySiblingGroup(childrenOf(node), node, assignments);
   }
 }
 
 /**
- * Walks a DesignNode tree top-down, classifying every node against its own siblings, and
- * flattens the result into one RoleAssignment[] covering the whole tree. This is the
- * entry point `/eval`'s score.ts calls to produce a heuristic's predictions.
+ * Walks a DesignNode tree top-down, classifying every node against its own siblings and
+ * parent, and flattens the result into one RoleAssignment[] covering the whole tree. This
+ * is the entry point `/eval`'s score.ts calls to produce a heuristic's predictions.
  */
 export function classifyTree(roots: DesignNode[]): RoleAssignment[] {
   const assignments: RoleAssignment[] = [];
-  classifySiblingGroup(roots, assignments);
+  classifySiblingGroup(roots, undefined, assignments);
   return assignments;
 }
