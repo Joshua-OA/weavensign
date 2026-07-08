@@ -41,7 +41,7 @@ export const GradientFillSchema = z.object({
 export const ImageFillSchema = z.object({
   type: z.literal("image"),
   assetRef: z.string(),
-  scaleMode: z.enum(["fill", "fit", "crop", "tile"]),
+  scaleMode: z.enum(["fill", "fit", "crop", "tile", "stretch"]),
 });
 
 /** Discriminated union of fill kinds a node's `fills` array may contain. */

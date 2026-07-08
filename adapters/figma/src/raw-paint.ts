@@ -36,7 +36,7 @@ const RawGradientPaintSchema = z.object({
 const RawImagePaintSchema = z.object({
   type: z.literal("IMAGE"),
   imageRef: z.string(),
-  scaleMode: z.enum(["FILL", "FIT", "CROP", "TILE"]),
+  scaleMode: z.enum(["FILL", "FIT", "CROP", "TILE", "STRETCH"]),
 });
 
 /**

@@ -98,10 +98,14 @@ export function mapNode(node: RawNode, context: MapContext): Result<DesignNode, 
         ...base,
         type: "vector",
         style: mapStyle(node),
-        paths: (node.fillGeometry ?? []).map((pathGeometry) => ({
-          data: pathGeometry.path,
-          windingRule: pathGeometry.windingRule.toLowerCase() as "nonzero" | "evenodd",
-        })),
+        // Stroke-only shapes (e.g. a LINE with no fill) have empty fillGeometry; their
+        // visible outline is in strokeGeometry instead.
+        paths: (node.fillGeometry?.length ? node.fillGeometry : (node.strokeGeometry ?? [])).map(
+          (pathGeometry) => ({
+            data: pathGeometry.path,
+            windingRule: pathGeometry.windingRule.toLowerCase() as "nonzero" | "evenodd",
+          }),
+        ),
       });
 
     default:

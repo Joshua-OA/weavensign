@@ -20,12 +20,15 @@ const RawPathCommandContentSchema = z.array(
 );
 
 /**
- * Penpot's shape types that this adapter maps. BOOL (boolean operations) is intentionally
- * excluded for now — it has no equivalent in the canonical schema yet and is rejected at
- * parse time rather than guessed at (a boolean op's rendered result is path-shaped, but
- * collapsing it to `vector` would silently lose the operation itself).
+ * Penpot's shape types that this adapter maps. `bool` (boolean-combined shapes — union/
+ * subtract/intersect/exclude of other shapes, e.g. a composite icon) carries the same
+ * `content` SVG path string as `path` once Penpot has flattened the operation, so it maps
+ * to canonical `vector` the same way `path` does (see map-node.ts). The `boolType` field
+ * and the `shapes` array of source-shape ids that produced it are construction-time
+ * provenance, not render-time children — the rendered result is fully captured by
+ * `content`, so the adapter doesn't need to read either.
  */
-export const SHAPE_TYPES = ["frame", "group", "rect", "circle", "path", "text"] as const;
+export const SHAPE_TYPES = ["frame", "group", "rect", "circle", "path", "text", "bool"] as const;
 
 /**
  * One entry in a Penpot page's flat `objects` map. Unlike Figma, children aren't nested —

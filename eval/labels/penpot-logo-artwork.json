@@ -1,0 +1,646 @@
+[
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf55",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb4eb35b456",
+    "role": "other"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf56",
+    "role": "other"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf58",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf59",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf5a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf5b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf5c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf5d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf5e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf5f",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf60",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf61",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf62",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf63",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf64",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf65",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf66",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf67",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf68",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf69",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf6a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf6b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf6c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf6d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf6e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf6f",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf70",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf71",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf72",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf73",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf74",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf75",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf76",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf77",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf78",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf79",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf7a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf7b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf7c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf7d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf7e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf7f",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf80",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf81",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf82",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf83",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf84",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf85",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf86",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf87",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf88",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf89",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf8a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf8b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf8c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf8d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf8e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf8f",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf90",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf91",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf92",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf93",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf94",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf95",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf96",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf97",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf98",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf99",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf9a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf9b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf9c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf9d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf9e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf9f",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa0",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa1",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa2",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa3",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa4",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa5",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa6",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa7",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa8",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfa9",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfaa",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cfab",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010836",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010837",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010838",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010839",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01083a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01083b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01083c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01083d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01083e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01083f",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010840",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010841",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010842",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010843",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010844",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010845",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010846",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010847",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010848",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010849",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01084a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01084b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01084c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01084d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01084e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01084f",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010850",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010851",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010852",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010853",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010854",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010855",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010856",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010857",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010858",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010859",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01085a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01085b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01085c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01085d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01085e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01085f",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010860",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010861",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010862",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010863",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010864",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010865",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010866",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010867",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010868",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010869",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01086a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01086b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01086c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01086d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01086e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01086f",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010870",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010871",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010872",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010873",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010874",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010875",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010876",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010877",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010878",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d010879",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01087a",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01087b",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01087c",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01087d",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d01087e",
+    "role": "image"
+  },
+  {
+    "nodeId": "c77eab98-5363-80bd-8001-dbb14d00cf57",
+    "role": "body-text"
+  }
+]

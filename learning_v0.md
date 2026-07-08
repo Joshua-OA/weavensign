@@ -323,3 +323,277 @@ format and role taxonomy to be nailed down before heuristic code silently assume
 for them. Next real step: fetch one real (anonymized) Figma file and one real Penpot file
 via the existing `fetch:figma`/`fetch:penpot` scripts, hand-label them against
 `ROLE_LABELS`, *then* write the first heuristic.
+
+---
+
+## 2026-07-07 (session 5 — first real eval fixtures, three more live-data schema bugs)
+
+Fetched a real Figma file (e-commerce landing page, `Home-Landing` frame, 261 nodes) and a
+real Penpot file (logo/SVG artwork page, 162 shapes) per `014`'s next step. Original
+`FIGMA_TOKEN` was rate-limited (`retry-after: 270420`s — a starter-plan API quota
+exhaustion, not a transient 429; confirmed via `x-figma-plan-tier: starter` /
+`x-figma-rate-limit-type: low` response headers) — user supplied a second token
+(`FIGMA_NEW_TOKEN`) with access to a different file, used for both live fetches this
+session. Hit three more real schema gaps live, same class as `006`/`011`/`012`.
+
+### 015 — Figma image fill `scaleMode` has a fifth real value, `STRETCH`, not in the original four
+
+**What happened:** `RawImagePaintSchema.scaleMode` (and canonical `ImageFillSchema`)
+only allowed `FILL | FIT | CROP | TILE` — the four documented as Figma's scale modes.
+A real image fill on an unsampled node had `scaleMode: "STRETCH"`.
+
+**Fix:** Added `"STRETCH"`/`"stretch"` as a fifth member to both the raw
+(`adapters/figma/src/raw-paint.ts`) and canonical (`schema/src/style.ts`) enums, and the
+cast in `map-paint.ts`. Penpot adapter doesn't touch `scaleMode` at all, so no parallel
+fix needed there.
+
+**Lesson:** Same root cause as `001`/`006`/`012` — a schema modeled from docs/samples
+rather than exhaustively verified against the real API surface. Figma's own docs undercount
+their enum's real values; "documented four options" was not "the actual four options."
+
+### 016 — Figma `fontStyle` is not a closed enum at all — it's the font family's own free-form style/weight name
+
+**What happened:** `RawTextStyleSchema.fontStyle` was `z.enum(["Regular","Bold","Italic","Bold Italic","Medium","Light"])`,
+built from the one sample seen in `006`. Live data hit `"Book"` (session 4 prep) and then
+`"Black"` and `"SemiBold"` (this session) — none in that set. Root cause: `fontStyle` in
+Figma's API is literally whatever string the active font family names that weight/style
+variant (varies per family — "Book", "Black", "SemiBold", "Heavy" are all real, common
+values across different type families), not a fixed vocabulary Figma defines.
+
+**Fix:** Changed `RawTextStyleSchema.fontStyle` to `z.string().optional()`. Canonical
+`TextStyle.fontStyle` stays `"normal" | "italic"` (correct — that's a CSS concept, not a
+passthrough of Figma's field) but the mapper (`map-text.ts`) now derives it via
+`rawFontStyle?.toLowerCase().includes("italic")` instead of an exact-match table lookup
+against a hardcoded set of style names — the *only* signal the canonical field needs from
+this free-form string is "does the name say italic."
+
+**Lesson:** A field name matching a familiar CSS/design concept (`fontStyle`) doesn't mean
+the external API models it the same way. Figma's `fontStyle` looks like it should map 1:1
+to CSS `font-style`, but it's actually closer to a font-weight-name string; treat every raw
+field's *actual value space* as unverified until live data forces the question, regardless
+of how familiar the field name seems.
+
+### 017 — Stroke-only vector shapes (e.g. Figma `LINE`) have empty `fillGeometry`; their outline lives in `strokeGeometry` instead
+
+**What happened:** `map-node.ts` mapped canonical `paths` only from `node.fillGeometry`.
+A real `LINE` node (fills: [], strokes: [one solid stroke]) had `fillGeometry: []` —
+correct per Figma (a line has no fill), but the adapter's `.min(1)`-validated canonical
+`paths` array then failed schema validation on `[]`, because the shape's actual visible
+geometry is in `strokeGeometry`, which the adapter never read at all (field wasn't even
+declared on `RawVectorLikeNodeSchema`).
+
+**Fix:** Added `strokeGeometry` to `RawVectorLikeNodeSchema` (and its hand-written
+`RawVectorLikeNode` interface counterpart, per the `003` pattern — every Zod-mirroring
+type needs its optional fields kept in lockstep). `map-node.ts`'s vector-leaf case now
+falls back to `strokeGeometry` when `fillGeometry` is empty.
+
+**Lesson:** "Empty array" from an external API is not always "no data" — for a stroke-only
+shape it's the *correct* value for one field while the real geometry is in a sibling
+field. A `.min(1)` constraint on a mapped array is itself a signal to check: is empty ever
+a legitimate upstream value, and if so, is there a fallback source the mapper should check
+before concluding data is missing?
+
+### Fixtures produced this session
+
+- `eval/fixtures/figma-ecommerce-landing.json` — 261-node real e-commerce landing page
+  (brand name anonymized: "Fitweargh"/"Fitwear gh" → "Acme Apparel"; currency-code string
+  "ghs" left as-is, it's a unit not an identifier).
+- `eval/fixtures/penpot-logo-artwork.json` — 162-shape real SVG logo/artwork page (domain
+  anonymized: "ape.wtf" → "example.com"). Note: this file also has pages containing
+  Penpot `bool` (boolean-operation) shapes, which the adapter intentionally rejects (see
+  `raw-shape.ts` comment) — deliberately picked a page with zero `bool` shapes for this
+  fixture rather than extending adapter scope to cover a documented, known gap.
+
+Both fixtures round-trip cleanly through `DesignNodeSchema.safeParse` after the `015`–`017`
+fixes. Labeling against `ROLE_LABELS` is the immediate next step, still not started.
+
+### 018 — Draft-labeled both fixtures myself; flagged as unreviewed, not ground truth
+
+**What happened:** User asked to continue toward the first heuristic. Hand-labeling 261 +
+161 nodes across two fixtures by reading node name/type/text/geometry — labeling logic
+that overlaps almost entirely with what a heuristic itself would do. If I also write the
+heuristic later, scoring it against my own labels risks circularity: precision/recall would
+measure "does the heuristic match my labeling logic," not "does it match real semantic
+role," which defeats the purpose of an independent eval set (context.md §7).
+
+**Fix:** Labeled both fixtures anyway (unblocks heuristic development now) but marked the
+result explicitly as an unreviewed draft, not ground truth — added a caveat section to
+`eval/README.md` Status calling this out, and recommending (a) human review/correction of
+`labels/*.json` before treating any score against them as a real accuracy number, and
+(b) more fixtures from more varied files/authors before the eval set is broad enough to
+mean anything about generalization — user explicitly noted the normalization layer will
+face "many other links" beyond the ones tested, not just these two files' naming/authoring
+idioms.
+
+**Lesson:** When the only labeler available is the same agent that will write the
+heuristic, self-labeling is a reasonable *bootstrap* (don't block on human availability)
+but must be flagged in-repo as unreviewed, not silently treated as the hand-labeled ground
+truth context.md §7 requires. The flag itself (in README, not just this log) is what keeps
+a future accuracy claim from being taken at face value by someone who didn't see this
+conversation.
+
+**Label distribution (sanity check, not a validation):**
+- Figma fixture (261 nodes): other 61, icon 36, badge 48, body-text 34, nav-item 12,
+  heading 5, image 32, card 19, button 14 — plausible given many repeated product-card
+  instances (drives up card/badge/image counts) and a small nav/footer.
+- Penpot fixture (161 nodes): image 158, other 2, body-text 1 — correct given the page is
+  one traced composite SVG illustration with no interactive-UI roles present at all; this
+  fixture alone can't exercise most of `ROLE_LABELS` and shouldn't be read as evidence a
+  heuristic handles button/card/nav-item well.
+
+### 019 — First normalization heuristic: generalizable signals only, deliberately not derived from my own draft labels
+
+**What happened:** With `018`'s draft labels in place, the obvious shortcut was writing a
+heuristic that encodes the same node-name/text rules I'd just used to label the fixtures —
+that would score near-perfectly but prove nothing (circular: heuristic learns my labeling
+logic, not real design-authoring signal). User explicitly flagged that the normalization
+layer will run against "many other links" at deploy time, not just these two tested files —
+reinforcing that fitting to two fixtures' idioms was the wrong target.
+
+**Fix:** Built `normalization/src/heuristics/` from signals that should transfer across
+arbitrary files: node size/aspect ratio (icon vs image), font size + text length (heading
+vs body-text), a small dictionary of common cross-site UI phrases ("add to cart", "view
+all", "home"/"cart"/"account") for button/nav-item, and sibling-name repetition + rough
+proportions for card detection on containers. Explicitly did not special-case anything
+specific to the two fixtures (no "Fitwear"/"Acme Apparel"-specific rules, no reliance on
+this file's exact layer names). `classify-node.ts` dispatches via an exhaustive `switch` +
+`assertNever` per `004`, and its tree-walk uses a top-level named recursive function
+(`classifySiblingGroup`), not a nested closure, per §4.2.
+
+**First honest score** (via new `eval/run-heuristic.ts`, `npx tsx eval/run-heuristic.ts`):
+button P1.00/R0.79, heading P1.00/R0.60, image R0.97 (Figma fixture) — strong, as expected
+from clear signals. badge P0.07/R0.06 and body-text R0.12 — weak, because the heuristic has
+no real badge signal (falls back to a length-threshold guess that misfires on short product
+copy) and no way to distinguish "short label" from "short badge text" yet. Penpot fixture
+scores `image` at P1.00 but only R0.30, because many individual SVG path fragments of one
+composite illustration are each small enough to look like `icon`s in isolation — a real
+limitation (size alone can't tell "small icon" from "small fragment of something bigger")
+worth fixing with a container-context signal later, not by special-casing this file.
+
+**Lesson:** When you are both the heuristic author and (in `018`) the label author, the
+only way to get a meaningful first score is deliberately choosing signals that don't
+retrace your own labeling steps. A heuristic that scores perfectly against self-authored
+labels is a red flag, not a result — the weak categories this run surfaced (badge,
+body-text, icon-vs-image-fragment) are the actually useful output of this pass, since they
+point at real gaps rather than confirming a foregone conclusion.
+
+**Next**: address the weak categories (badge needs a real signal — likely small-fixed-size
++ non-repeating, or explicit color/shape cues once style data is used; body-text needs to
+stop misfiring on short strings that aren't badges; icon-vs-image needs a "is this one of
+many same-parent vector fragments" check). Also still pending from `018`: human review of
+the draft labels, and adding more/varied fixtures before any score here is a real accuracy
+claim per context.md §7.
+
+### 020 — Fixing badge/body-text/icon weaknesses: pixel size alone can't separate "small icon" from "small badge dot" — sibling clustering can
+
+**What happened:** Iterating on `019`'s weak categories: (1) dropping the length-based
+badge fallback in `classify-text.ts` fixed body-text (R0.12→1.00) immediately, since almost
+all its false negatives were short non-badge strings ("ghs 200.00", product names) wrongly
+guessed as badge. (2) First badge fix attempt added a "parent container is small" signal to
+text classification — checked against real badge-labeled nodes and found it *never fired*:
+real text badges here ("10", "SPORTS BRA") sit inside normal/large card containers, not
+small ones; the parent-size assumption was simply wrong, so it was removed rather than kept
+as dead code. (3) First vector-badge attempt used a flat pixel-size cutoff
+(`longestSide <= 12`) — this collided badly with real icons: 18 of 36 real icon-labeled
+vectors in the fixture are ~10x9px (arrow glyphs), i.e. the *same size range* as the real
+badge dots (Ellipse 14/15/16 at ~8.4x8.4px). A universal size threshold cannot separate
+these; icon recall cratered to 0.17 as a direct result.
+
+**Fix:** Inspected the actual sibling context of a real badge cluster vs a real standalone
+icon directly in the fixture: the three Ellipse badges always appear as 3 same-tiny-size
+vector siblings under one card container (a "status dots" row pattern); the real icon
+Vector is the *only* vector sibling in its parent Frame. Reworked `classifyVector` to use
+vector-sibling-count as the discriminating signal instead of pure size: 1 vector sibling
+alone → icon (even if tiny); 2-7 same-parent vector siblings, all small/square → badge
+(a dot cluster); 8+ → image fragment (per `019`'s existing signal). Result: badge
+P0.07→1.00 precision, R0.06→0.94 recall; icon P1.00, R0.67 (recovered from the 0.17 dip,
+though still below `019`'s original 0.92 — a real precision/recall trade against
+misclassifying tiny standalone icons, judged acceptable since perfect badge precision was
+the bigger win). No other category regressed relative to `019`'s baseline.
+
+**Lesson:** When a size-only threshold produces a real false-positive/false-negative
+collision (not just a rough edge case), the fix is not "adjust the number" — pull the two
+colliding real examples from the fixture directly and diff their *context* (siblings,
+parent, repetition), not just their own dimensions. The signal that actually separates
+"tiny icon" from "tiny badge" was never in the node's own size at all; it was in how many
+same-sized siblings sit next to it. This is the same class of insight as `009`
+(geometry needs parent context) and `018`'s container-repetition signal — role inference
+for a single node very often depends on information a size/type check of that node alone
+cannot see.
+
+---
+
+## 2026-07-08 (session 6 — closing the `bool`-shape gap, third fixture, confirming the generalization gap)
+
+User flagged, before any new work: "penpot might propose a challenge later" — anticipating
+that a heuristic tuned only against the two `019`/`020` fixtures (one Figma e-commerce page,
+one Penpot pure-artwork page with almost no interactive UI) hadn't actually been tested
+against real Penpot *application* UI at all. Correct call — see below.
+
+### 021 — Penpot `bool` (boolean-combined) shapes: the documented "gap" was actually trivial to close, and the file that needed it was a real UI dashboard using them for icons
+
+**What happened:** User provided a new Penpot page (a "Dash (dark)" dashboard board) to
+use as a Penpot-UI fixture. First fetch hit the exact documented gap from `011`: `bool`
+shapes rejected at parse time, failing the whole page. Inspecting the real `bool` shape
+data directly (not guessing): `boolType: "union"` shapes here are literally named
+`icon_avatar` — Penpot's own dashboard demo builds its avatar icon by boolean-unioning
+circles, not a special/rare case but a normal real-world UI pattern.
+
+**Fix:** `bool` shapes carry the exact same `content` (flattened SVG path string), `fills`,
+and null-x/y/width/height + `selrect` shape as `path` shapes already do — Penpot has
+already resolved the boolean operation into one path by the time it's served over the API.
+Added `"bool"` to `SHAPE_TYPES` and a `case "bool":` alongside the existing `case "path":`
+in `map-node.ts` (same mapping, same canonical `vector` output). The `boolType` and the
+`shapes` array (ids of the shapes that were combined to produce it) are construction-time
+provenance the adapter doesn't need — the rendered result is fully captured by `content`.
+No schema changes needed (`shapes` field already existed, shared with group/frame usage).
+
+**Lesson:** `011`'s original gap note said "no canonical equivalent exists yet" for `bool`
+— that was wrong the whole time; the equivalent (`vector`) already existed and Penpot had
+already done the hard part (flattening the boolean op to a path) before the API response
+even reached the adapter. A "known gap, tracked not guessed at" note is a snapshot of
+*current* adapter scope, not a permanent architectural verdict — worth re-examining once
+real data (here, a real UI file that needed it) makes it worth another look, rather than
+assuming a past "no equivalent" note is still true.
+
+### 022 — Third fixture (Penpot dashboard UI, 389 nodes) confirms the heuristic doesn't generalize past the two files it was tuned against
+
+**What happened:** With `021`'s fix, fetched and fixture'd a real Penpot dashboard board
+(`dash_dark` — search bar, stat pills, nav rail, calendar, message cards, task form,
+buttons, avatars). Anonymized real personal names present in Penpot's own demo content
+("Benedict Cumberbatch", "Alice Kay", "Ben Andrews", etc. — genuine names baked into
+Penpot's stock dashboard template, not the user's private data, but anonymized anyway per
+this project's convention) before writing to `/eval/fixtures`. Draft-labeled all 389 nodes
+(same unreviewed-draft caveat as `018`) — first fixture to exercise `avatar` (8) and
+`input-field` (3) at all, previously untested roles.
+
+Running the existing heuristic (unchanged from `020`) against it: button **R0.00** (missed
+entirely — Penpot buttons here are `component-instance`-wrapped vector+text with label
+words like "LOAD MORE"/"back up data" not in `BUTTON_LABEL_WORDS`, and `classifyContainer`
+has no button-detection path at all), avatar **R0.00** (no avatar signal exists anywhere —
+`icon_avatar` bool-shapes get caught by existing size/cluster rules as icon/badge instead),
+nav-item **P0.00/R0.00** (Penpot's nav icons are `group`s here, not `text`, so the
+text-based nav-word dictionary never fires and containers have no nav-item path either),
+`other` **P0.13** (46 false positives — heavy fallback-bucket miscategorization), image
+**P0.25** (68 false positives — many decorative rects wrongly called images). Figma
+fixture's scores (`020`'s numbers) are completely unchanged, as expected — the heuristic
+wasn't touched this session, only measured against new data.
+
+**Lesson:** This is exactly the outcome the user's opening intuition predicted, now with
+numbers attached — a heuristic built and tuned against one design tool's authoring idioms
+(Figma's component-instances, sibling-repetition patterns, text-based nav labels) does not
+transparently transfer to a different tool's structural conventions for the *same visual
+concepts* (buttons, avatars, nav) even when the canonical schema already unifies both
+tools' output. This is the same root lesson as `008`/`010` (two adapters for visually
+similar things can have very different underlying structure) but now demonstrated one
+level up, at the normalization/heuristic layer rather than the adapter layer. The three
+fixtures now cover meaningfully different territory: Figma e-commerce (button/card/nav
+heavy), Penpot pure-artwork (image-only, no UI), Penpot dashboard (button/avatar/input-field/
+nav-item, previously zero coverage on three of those four). **Next**: extend
+`classify-container.ts` with a real button-detection path (small-ish container, single
+text+vector children, inside a form/action context) and an avatar signal (small
+roughly-circular vector or bool-shape, likely named/clustered near message-style rows), and
+extend nav-item detection to consider non-text (icon-group) nav items, not just text labels
+— then re-score all three fixtures together to confirm no regression on the Figma numbers
+while closing the new gaps. Still open from `018`/`020`: human review of all three
+fixtures' draft labels before any score here is a real accuracy claim per context.md §7.

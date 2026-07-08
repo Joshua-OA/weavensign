@@ -28,7 +28,24 @@ same tree can be scored against multiple heuristic versions without cloning it.
 
 ## Status
 
-Scaffolding only — no heuristics implemented yet. Next: label a first real (anonymized)
-Figma/Penpot file in `/eval` against this taxonomy, then write heuristics against that
-labeled set, scored via `/eval`'s scoring script. No accuracy claim about this module is
-meaningful without a number from `/eval` attached (context.md §7).
+First heuristic pass implemented in `src/heuristics/`: `classify-vector.ts` (icon vs image
+by size/aspect ratio), `classify-text.ts` (heading/body-text/button/nav-item by font size,
+text length, and a small common-label-word dictionary), `classify-container.ts`
+(card vs other by sibling-name repetition and card-like proportions), and
+`classify-node.ts` (top-level dispatcher/tree-walker exporting `classifyTree`, the
+package's public entry point). Each pure classifier has its own unit tests.
+
+Scored against `/eval`'s labeled fixtures via `npx tsx eval/run-heuristic.ts` (per-role
+precision/recall). On the Figma fixture, after two iterations (see learning_v0.md #019,
+#020): button P1.00/R0.79, heading P1.00/R0.60, badge P1.00/R0.94, body-text R1.00, icon
+P1.00/R0.67, image R0.97. A third fixture (`penpot-dashboard-ui.json`, real Penpot app UI)
+was added in learning_v0.md #022 specifically to test whether these results generalize
+past Figma's authoring idioms — they don't yet: button R0.00, avatar R0.00, nav-item
+P0.00/R0.00 on that fixture, because the heuristic's button/nav detection is text-word-based
+(tuned to Figma's labels) and has no avatar signal at all. This is the current known gap —
+`classify-container.ts` needs a real button-detection path and an avatar signal, and
+nav-item detection needs to consider icon-group nav items, not just text labels, before
+re-scoring all three fixtures together. **Those eval labels are still an unreviewed AI
+draft, not human-verified ground truth** (see `/eval/README.md` Status) — treat every
+number above as a rough baseline to improve from, not a proven accuracy claim, until the
+labels are reviewed and more varied fixtures are added.

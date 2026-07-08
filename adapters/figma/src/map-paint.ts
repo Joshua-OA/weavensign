@@ -21,7 +21,7 @@ export function mapPaint(paint: RawPaint): Fill {
     return {
       type: "image",
       assetRef: paint.imageRef,
-      scaleMode: paint.scaleMode.toLowerCase() as "fill" | "fit" | "crop" | "tile",
+      scaleMode: paint.scaleMode.toLowerCase() as "fill" | "fit" | "crop" | "tile" | "stretch",
     };
   }
   const [start, end, widthAxis] = paint.gradientHandlePositions;

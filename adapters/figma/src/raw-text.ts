@@ -3,7 +3,9 @@ import { z } from "zod";
 export const RawTextStyleSchema = z.object({
   fontFamily: z.string(),
   fontWeight: z.number(),
-  fontStyle: z.enum(["Regular", "Bold", "Italic", "Bold Italic", "Medium", "Light"]).optional(),
+  // Figma's fontStyle is the font family's own style/weight name (e.g. "Regular",
+  // "SemiBold", "Book", "Black") — free-form per family, not a fixed set of values.
+  fontStyle: z.string().optional(),
   fontSize: z.number(),
   textAlignHorizontal: z.enum(["LEFT", "CENTER", "RIGHT", "JUSTIFIED"]),
   letterSpacing: z.number(),

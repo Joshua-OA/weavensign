@@ -87,7 +87,8 @@ export function mapNode(shape: RawShape, parentBox: RawSelrect | undefined, cont
       return ok({ ...base, type: "vector", style: mapStyle(shape), paths: [{ data, windingRule: "nonzero" }] });
     }
 
-    case "path": {
+    case "path":
+    case "bool": {
       const data = typeof shape.content === "string" ? shape.content : "";
       return ok({
         ...base,

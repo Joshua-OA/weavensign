@@ -76,6 +76,7 @@ export interface RawGroupNode extends RawNodeCommon {
 export interface RawVectorLikeNode extends RawNodeCommon {
   type: (typeof VECTOR_LEAF_TYPES)[number];
   fillGeometry?: z.output<typeof RawFillGeometrySchema>[] | undefined;
+  strokeGeometry?: z.output<typeof RawFillGeometrySchema>[] | undefined;
 }
 
 export interface RawTextNode extends RawNodeCommon {
@@ -123,6 +124,9 @@ export const RawVectorLikeNodeSchema = z.object({
   ...RawNodeCommonShape,
   type: z.enum(VECTOR_LEAF_TYPES),
   fillGeometry: z.array(RawFillGeometrySchema).optional(),
+  // Stroke-only shapes (e.g. a LINE with no fill) have empty fillGeometry — their visible
+  // outline lives here instead. Used as a fallback when fillGeometry is empty.
+  strokeGeometry: z.array(RawFillGeometrySchema).optional(),
 });
 
 export const RawTextNodeSchema = z.object({

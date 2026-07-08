@@ -49,8 +49,11 @@ the normalization layer's job, later.
   as an `unresolved-component-reference` error, not a silent guess.
 - Per-corner rectangle radii (Penpot's `r1`-`r4`) aren't mapped; only the uniform `rx` is
   used by `synthesizeRectPath`.
-- `BOOL` (boolean operation) shapes are rejected at parse time — no canonical equivalent
-  exists yet, and collapsing one to a plain `vector` would silently lose the operation.
+- `bool` (boolean-combined) shapes map to canonical `vector`, using the same flattened
+  `content` SVG path Penpot already computes — the same treatment as `path` shapes. The
+  `boolType` (union/subtract/intersect/exclude) and the `shapes` array of source shape ids
+  that produced it are not read; they're construction-time provenance, not needed to
+  reproduce the rendered result.
 
 ## Fixtures
 

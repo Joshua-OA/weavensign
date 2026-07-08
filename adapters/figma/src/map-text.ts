@@ -15,10 +15,14 @@ const AUTO_RESIZE_MAP = {
   TRUNCATE: "truncate",
 } as const;
 
-const FONT_STYLE_MAP: Record<string, "normal" | "italic"> = {
-  Italic: "italic",
-  "Bold Italic": "italic",
-};
+/**
+ * Figma's fontStyle is a free-form family-specific style/weight name ("Regular",
+ * "SemiBold", "Book", "Black", ...) — the only signal for canonical (CSS-shaped)
+ * fontStyle is whether that name mentions "italic", not an exact-match lookup.
+ */
+function mapFontStyle(rawFontStyle: string | undefined): "normal" | "italic" {
+  return rawFontStyle?.toLowerCase().includes("italic") ? "italic" : "normal";
+}
 
 const TEXT_DECORATION_MAP = {
   NONE: "none",
@@ -51,7 +55,7 @@ export function mapTextContent(characters: string, style: RawTextStyle): TextCon
         style: {
           fontFamily: style.fontFamily,
           fontWeight: style.fontWeight,
-          fontStyle: style.fontStyle ? (FONT_STYLE_MAP[style.fontStyle] ?? "normal") : "normal",
+          fontStyle: mapFontStyle(style.fontStyle),
           fontSizePx: style.fontSize,
           lineHeightPx: style.lineHeightPx,
           letterSpacingPx: style.letterSpacing,
