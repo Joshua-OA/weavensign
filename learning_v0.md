@@ -597,3 +597,117 @@ extend nav-item detection to consider non-text (icon-group) nav items, not just 
 — then re-score all three fixtures together to confirm no regression on the Figma numbers
 while closing the new gaps. Still open from `018`/`020`: human review of all three
 fixtures' draft labels before any score here is a real accuracy claim per context.md §7.
+
+### 023 — Closed `022`'s four gaps with structural (not textual) container signals; one regex over-match caught before it shipped
+
+**What happened:** Before writing any new signal, pulled the real ground-truth nodes for
+each weak Penpot-dashboard role directly from the fixture (same discipline as `020`) rather
+than guessing shapes: real `button` containers (`Button-1/2/3`) are a 2-child
+group/component-instance — one `text` label, one `vector` background sized to ~full
+container width (ratio ≥0.9) — vs. a visually similar Figma icon+label pair ("Account" +
+28px icon next to 63px text, ratio 0.29) that must **not** match; real `avatar` nodes are
+`vector`s literally named `icon_avatar` (Penpot's own dashboard-template convention, not
+fixture slang, confirmed via `021`'s finding that avatars are boolean-unioned circles
+flattened to one path); real `nav-item` containers (`nav`'s 8 children) are all-vector,
+no text child, ~22px square, in a same-shaped 8-sibling group; real small `badge` containers
+(`stat-1/2/3`) are 2-text + 1-background-vector pills only ~16px tall (vs. a button's ~42px),
+distinguishing the two composite roles by height alone.
+
+**Fix:** `classify-container.ts` gained three new structural checks (`looksLikeButton`,
+`looksLikeBadge`, `looksLikeNavItem`) run before the existing repetition/proportion card
+logic, plus the repeated-sibling threshold's minimum side dropped to 30px (was 100px) so
+compact list-row "cards" like `Component-1..4`/message rows can match repetition even
+though they're far smaller than the original card-min-side assumption (which was tuned
+against Figma's much larger product cards). `classify-vector.ts` gained `isAvatarShape`
+(name match + size/aspect guard, checked before the existing size-cascade). Sibling
+repetition matching (`countSiblingsWithSameName`) switched from exact-name to
+suffix-stripped prefix match, because Penpot's real duplicate-instance naming convention is
+`message`/`message-1`/`message-2` (no exact match at all), unlike Figma's exact-repeat
+`"product card"` naming.
+
+**Caught during verification, not shipped:** first prefix-strip regex
+(`/[-\s]?\(?\d+\)?$/`) also stripped Figma's *generic* auto-numbered default names
+("Group 15", "Group 16", "Group 17" — unrelated layers that just happen to be
+sequentially auto-named), which collided them into a false repeated-card match and
+dropped Figma card precision 0.79→0.69 on the very next scoring run. Root cause: Figma's
+generic auto-name uses a bare space before the number; Penpot's real duplicate-instance
+suffix is always hyphen- or paren-attached. Narrowed the regex to only strip `-N` / `(N)`
+forms, re-scored, confirmed Figma's card score returned to exactly its pre-change baseline
+(0.79/0.79) with zero other category regressions. Also caught one bad unit test during this
+pass — a synthetic 315x50 "message" fixture asserting `card` that doesn't actually match
+(aspect ratio 6.3 exceeds `CARD_MAX_ASPECT_RATIO`); traced against the real fixture and
+confirmed real `message-N` nodes score `other`, not `card` (the earlier recall gain
+actually came from `Component-1..4`) — fixed the test to use a real card-shaped repeat
+case instead of asserting on a guess.
+
+**Score deltas (dashboard fixture; Figma fixture unchanged in every category):**
+avatar 0/0 → P1.00/R1.00 (tp 0→8), nav-item P0.00/R0.00 → P0.89/R1.00 (tp 0→8),
+button R0.00 → P0.75/R0.50 (tp 0→3), card R0.48→0.62 (tp 10→13), badge R0.70→0.77
+(tp 30→33). `other`/`image` false-positive counts on the dashboard fixture (28/68)
+are unchanged — those come from large flat-color background rects (chart bg, message
+bg) being caught by the vector size-fallback rule, a distinct and harder gap (need
+fill-data or container-context signal to tell "background rect" from "real image") not
+touched this pass.
+
+**Lesson:** Two reinforcing points. (1) Same as `020`: pulling the real colliding examples
+(button vs. icon+label pair; real avatar vs. a size-guarded name match) and diffing their
+actual structure, not adjusting a threshold on a hunch, is what produced a clean
+discriminator (background-width-ratio, all-vector-no-text) on the first attempt. (2) A
+generalization applied to fix one tool's naming convention (Penpot's `-N` suffix) can
+silently break another tool's *different* convention for a superficially similar pattern
+(Figma's ` N` generic default) — the fix isn't "don't generalize," it's "immediately
+re-score every existing fixture after any generalization, before trusting the new signal,"
+which is exactly the check that caught this before it shipped. Per `018`/`022`: all
+label sets used here are still unreviewed drafts, not ground truth — these are heuristic
+progress numbers, not accuracy claims.
+
+### 024 — Two of `023`'s three follow-ups were draft-label noise, not heuristic gaps; the third (background-rect vs. image) had a real, cheap fix
+
+**What happened:** Investigated the three items `023` left open (dashboard `heading`
+recall 0.21, `icon` recall 0.44, and the `other`/`image` false-positive cluster) before
+writing any code. `heading` misses were all 11-13px UI micro-labels ("mon"/"tue", "SIZE",
+"FILE NAME", "Task name") draft-labeled `heading` inconsistently — chasing them would mean
+lowering the heading font-size floor and wrecking `body-text` precision project-wide, the
+wrong fix for a labeling problem, not a heuristic one (leaving as-is). Digging into `icon`
+misses surfaced the real, fixable issue underneath: large flat-color rects literally named
+`bg`/`bg-2`/`bg-3`/... (Penpot's own naming convention for a card/row/button's backdrop
+panel) were falling into the size-based `image` fallback in `classify-vector.ts`, when
+ground truth never labels a `bg`-named shape `image` (always `icon` or `other`, split by
+context, but never image) — real content rects use different names (`Rect-N`, `Circle-N`,
+`graph`). Separately, near-zero-height/width "hairline" vectors (`Path-N` grid lines,
+`scroll`, `sideline`, `topline` — decorative divider lines, height/width ≈0.01–1px) were
+also landing in `image` for the same reason (large longest-side, size cascade never
+considered a near-zero short side as its own category).
+
+**Fix:** Added `isNamedBackgroundShape` (matches `^bg(-\d+)?$` exactly) and a hairline
+check (`shortestSide <= 1px`) to `classify-vector.ts`'s fallback cascade, both checked
+after the existing size/badge/icon rules and after the avatar/fragment-count checks —
+`bg`-named large shapes now resolve to `icon` (matches the majority real label), hairlines
+resolve to `other`. Verified no collision before shipping: `penpot-logo-artwork`'s fixture
+has real `image`-truthed ~1x3px composite-SVG-fragment hairlines, but those are already
+caught by the pre-existing 8+-vector-sibling fragment rule *before* reaching the new
+hairline check, so they're unaffected (confirmed via direct query, not assumed).
+
+**What was deliberately left alone:** button background rects (e.g. `Rect-9`, ground-truth
+`other`) aren't caught by either new rule and still misclassify — but `classify-vector.ts`
+only receives sibling count, not parent role, so telling "this rect is a button's own
+background" from "this rect is real image content" needs parent-context data this
+function's signature doesn't carry. Flagged as a real, structural gap (would need a
+parent-role argument threaded through `classify-node.ts`, same shape as the geometry
+parent-context work in `009`), not forced with a name-based guess.
+
+**Score deltas (dashboard fixture; Figma/logo-artwork unchanged except one incidental
+Figma `other` improvement from the same hairline rule, since Figma has its own decorative
+lines):** icon recall 0.44→0.60 (tp 32→44), image fp 68→39, other precision/recall
+0.13/0.08 → 0.35/0.31 (tp 4→15). Figma: other tp 35→37 (hairline rule applies there too),
+every other Figma category exactly unchanged.
+
+**Lesson:** Same discipline as `020`/`023` — pulled every real colliding node (`bg`-named
+shapes across all their ground-truth roles, hairline shapes across all fixtures) before
+writing the rule, and explicitly checked the new rule against fixtures it *wasn't* being
+tuned on before calling it done. Also worth naming directly: not every item on a "next
+steps" list is a heuristic bug waiting for a fix — two of three were draft-label quality
+issues, and forcing a heuristic change to chase noisy labels would have been a regression
+disguised as progress. Distinguishing "real signal the heuristic is missing" from "the
+label itself is questionable" required going back to the source node every time, not
+just trusting the aggregate score's shape.

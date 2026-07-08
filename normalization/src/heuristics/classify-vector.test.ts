@@ -25,7 +25,11 @@ describe("classifyVector", () => {
   });
 
   it("classifies a small but elongated shape as an image, not an icon", () => {
-    expect(classifyVector(makeVector(47, 1), 1).role).toBe("image");
+    expect(classifyVector(makeVector(47, 8), 1).role).toBe("image");
+  });
+
+  it("classifies a hairline shape (near-zero short side) as other, not an image", () => {
+    expect(classifyVector(makeVector(260, 1), 1).role).toBe("other");
   });
 
   it("classifies a small shape with many vector siblings as an image fragment, not an icon", () => {
@@ -38,5 +42,15 @@ describe("classifyVector", () => {
 
   it("classifies a tiny square shape alone (no cluster) as an icon, not a badge", () => {
     expect(classifyVector(makeVector(8, 8), 1).role).toBe("icon");
+  });
+
+  it("classifies a shape named icon_avatar as an avatar regardless of sibling count", () => {
+    const avatar = { ...makeVector(25, 28), name: "icon_avatar" };
+    expect(classifyVector(avatar, 4).role).toBe("avatar");
+  });
+
+  it("does not classify a large shape merely containing 'avatar' in an unrelated way as an avatar", () => {
+    const notAvatar = { ...makeVector(400, 300), name: "avatar-bg-illustration" };
+    expect(classifyVector(notAvatar, 1).role).toBe("image");
   });
 });

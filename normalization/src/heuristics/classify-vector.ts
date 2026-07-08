@@ -7,6 +7,35 @@ const ICON_MAX_ASPECT_RATIO = 2;
 const FRAGMENT_SIBLING_COUNT_THRESHOLD = 8;
 const BADGE_CLUSTER_MIN_SIBLINGS = 2;
 const BADGE_CLUSTER_MAX_SIBLINGS = 7;
+const AVATAR_MAX_ASPECT_RATIO = 1.5;
+const AVATAR_MAX_DIMENSION_PX = 40;
+const HAIRLINE_MAX_SHORT_SIDE_PX = 1;
+
+/**
+ * True when a vector's own name literally identifies it as an avatar. Penpot's stock
+ * dashboard template names avatar shapes `icon_avatar` (a boolean-unioned circle
+ * flattened to one path by the time it reaches the API, see learning_v0.md #021) — a
+ * real, generalizable authoring convention, not a fixture-specific label to special-case.
+ */
+function isAvatarShape(node: VectorNode): boolean {
+  if (!/avatar/i.test(node.name)) return false;
+  const { width, height } = node.geometry.size;
+  const longestSide = Math.max(width, height);
+  const shortestSide = Math.max(Math.min(width, height), 1);
+  return longestSide <= AVATAR_MAX_DIMENSION_PX && longestSide / shortestSide <= AVATAR_MAX_ASPECT_RATIO;
+}
+
+/**
+ * True when a vector's own name literally identifies it as a decorative background
+ * shape (Penpot's `bg` / `bg-2` / `bg-3` ... naming convention for a card/row/button's
+ * backdrop rect, distinct from a real content rect like `Rect-N`/`Circle-N`/`graph`).
+ * A large `bg`-named rect would otherwise fall into this function's size-based `image`
+ * fallback (see learning_v0.md #024) even though it's never real image content — it's
+ * the flat-color panel a card's real content (text, other vectors) sits on top of.
+ */
+function isNamedBackgroundShape(node: VectorNode): boolean {
+  return /^bg(-\d+)?$/.test(node.name);
+}
 
 /**
  * Classifies a vector leaf node using size, aspect ratio, and how many same-parent vector
@@ -22,6 +51,9 @@ export function classifyVector(
   node: VectorNode,
   vectorSiblingCount: number,
 ): { role: RoleLabel; confidence: number } {
+  if (isAvatarShape(node)) {
+    return { role: "avatar", confidence: 0.6 };
+  }
   if (vectorSiblingCount >= FRAGMENT_SIBLING_COUNT_THRESHOLD) {
     return { role: "image", confidence: 0.5 };
   }
@@ -39,6 +71,12 @@ export function classifyVector(
   }
   if (longestSide <= ICON_MAX_DIMENSION_PX && isRoughlySquare) {
     return { role: "icon", confidence: 0.6 };
+  }
+  if (isNamedBackgroundShape(node)) {
+    return { role: "icon", confidence: 0.35 };
+  }
+  if (shortestSide <= HAIRLINE_MAX_SHORT_SIDE_PX) {
+    return { role: "other", confidence: 0.4 };
   }
   return { role: "image", confidence: 0.55 };
 }
