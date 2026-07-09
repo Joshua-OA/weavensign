@@ -751,3 +751,45 @@ package rather than source (check the import path before assuming "no change" me
 effect") — a silent stale-build read looks exactly like a real negative result if you
 don't check for it, and would have been mis-reported as "the fix didn't work" without
 catching the rebuild step first.
+
+### 026 — First `input-field` signal: two real examples, two different shapes, not one generalized rule
+
+**What happened:** `input-field` had zero heuristic signal since scaffolding (`014`).
+Pulled the real ground-truth nodes before writing anything (same discipline as `020`/`023`/
+`025`): the eval set's 3 labeled `input-field` nodeIds resolve to only 2 visually distinct
+shapes — Penpot's `search` group (1 `icon_search`-named vector + 1 text, ~254x18px) and a
+`Group-3` message-input pill (1 background vector + 2 text runs — value and hint, ~315x40px)
+wrapped by a `message-6` pass-through group that carries the label's 3rd nodeId but adds no
+structure of its own. Checked both shapes for collisions against every other role at
+similar sizes before writing rules: the 3-child bg+2-text composition never collides with
+badge (same composition but height ≤20px vs input-field's 25–45px band) or card (same
+height range as button but 3-not-2 children, and real card examples in that band are
+2-vector+1-text or 4-child, never 1-vector+2-text); the search shape's 2-child
+vector+text composition doesn't collide with button (button requires height ≥20px *and*
+width ≥60px in a specific pill shape the 18px-tall search bar fails) or the icon+label pair
+`023` already excluded from button.
+
+**Fix:** Added two independent checks to `classify-container.ts`: `looksLikeSearchBox`
+(exactly 1 vector + 1 text child, vector's name matches `/search/i` — deliberately
+name-anchored since only one real sample exists, not generalized from size/shape alone)
+and `looksLikeInputField` (exactly 1 vector + 2 text children, height between the badge and
+card bands). Both run in `classifyContainer`'s cascade after nav-item, before the card
+fallback. Did not add a rule for the `message-6` wrapper case (a group whose only child is
+itself an input-field) — one example isn't enough to generalize a "pass-through wrapper"
+signal from, flagged as a known recall gap in the README instead of guessing at a rule.
+
+**Score deltas (dashboard fixture only; Figma/logo-artwork fixtures bit-identical, neither
+has an `input-field`-labeled node):** input-field tp 0→2 (P1.00/R0.67, the `message-6`
+wrapper is the one remaining miss), `other` fp 28→26 (both real input-field nodes had been
+falling into `other` before).
+
+**Lesson:** Same discipline as `020`/`023`/`025` — pull the real labeled nodes first, diff
+their actual structure against every neighboring role at similar size/shape, and only then
+write the narrowest rule that separates them. Worth naming here specifically: two ground-
+truth examples of the same nominal role turned out to be two different structural shapes
+(name-anchored search-box vs. composition-anchored input pill), not one generalizable
+pattern — forcing a single rule to cover both would have meant either overfitting to one
+shape's specifics or loosening the match until it collided with badge/card. Writing two
+narrow, independently-justified checks was more honest than one broad guess, and is
+consistent with `016`/`017`'s broader lesson that a single field or role name doesn't
+imply one underlying representation.

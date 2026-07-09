@@ -75,4 +75,27 @@ describe("classifyContainer", () => {
     const siblings = [makeGroup("Group 15", 60, 40), makeGroup("Group 16", 60, 40), makeGroup("Group 17", 60, 40)];
     expect(classifyContainer(siblings[0]!, siblings).role).toBe("other");
   });
+
+  it("classifies a search-icon-plus-text pair as an input-field", () => {
+    const icon = { ...makeGroup("icon_search", 18, 18), type: "vector" } as unknown as DesignNode;
+    const text = { ...makeGroup("Text-1", 224, 17), type: "text" } as unknown as DesignNode;
+    const search = makeGroup("search", 254, 18, [icon, text]);
+    expect(classifyContainer(search, [search]).role).toBe("input-field");
+  });
+
+  it("classifies a background-plus-two-text pill in the input-field height band as an input-field", () => {
+    const background = { ...makeGroup("bg-3", 315, 40), type: "vector" } as unknown as DesignNode;
+    const value = { ...makeGroup("Text-52", 32, 16), type: "text" } as unknown as DesignNode;
+    const hint = { ...makeGroup("Text-53", 220, 17), type: "text" } as unknown as DesignNode;
+    const field = makeGroup("Group-3", 315, 40, [background, value, hint]);
+    expect(classifyContainer(field, [field]).role).toBe("input-field");
+  });
+
+  it("does not classify a taller three-child card-shaped container as an input-field", () => {
+    const background = { ...makeGroup("bg", 230, 60), type: "vector" } as unknown as DesignNode;
+    const title = { ...makeGroup("Text-1", 100, 16), type: "text" } as unknown as DesignNode;
+    const body = { ...makeGroup("Text-2", 200, 16), type: "text" } as unknown as DesignNode;
+    const card = makeGroup("message-2", 230, 60, [background, title, body]);
+    expect(classifyContainer(card, [card]).role).not.toBe("input-field");
+  });
 });
