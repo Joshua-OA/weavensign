@@ -9,7 +9,8 @@
     "adapters/figma",
     "adapters/penpot",
     "normalization",
-    "eval"
+    "eval",
+    "mcp-server"
   ],
   "engines": {
     "node": ">=20"

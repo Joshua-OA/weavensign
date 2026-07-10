@@ -1,17 +1,13 @@
 {
-  "name": "@weavensign/adapter-figma",
+  "name": "@weavensign/mcp-server",
   "version": "0.1.0",
-  "description": "Mechanical translation from the Figma REST API's node JSON into the canonical Design DOM. No inference — that's the normalization layer's job.",
+  "description": "MCP tool definitions and stdio transport exposing the Figma/Penpot adapters and normalization layer to MCP clients",
   "license": "GPL-3.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
+  "bin": {
+    "weavensign-mcp-server": "./dist/server.js"
   },
   "files": [
     "dist"
@@ -20,9 +16,13 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.typecheck.json",
     "test": "vitest run",
-    "lint": "eslint src"
+    "start": "node dist/server.js"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@weavensign/adapter-figma": "0.1.0",
+    "@weavensign/adapter-penpot": "0.1.0",
+    "@weavensign/normalization": "0.1.0",
     "@weavensign/schema": "0.2.0",
     "zod": "4.4.3"
   },

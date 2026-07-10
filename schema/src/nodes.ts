@@ -67,12 +67,8 @@ export type DesignNode =
   | ComponentNode
   | ComponentInstanceNode;
 
-function childrenSchema(): z.ZodType<DesignNode[], z.ZodTypeDef, unknown> {
-  return z.lazy(() => z.array(DesignNodeSchema)) as unknown as z.ZodType<
-    DesignNode[],
-    z.ZodTypeDef,
-    unknown
-  >;
+function childrenSchema(): z.ZodType<DesignNode[], unknown> {
+  return z.lazy(() => z.array(DesignNodeSchema)) as unknown as z.ZodType<DesignNode[], unknown>;
 }
 
 export const FrameNodeSchema = z.object({
@@ -121,7 +117,7 @@ export const ComponentInstanceNodeSchema = z.object({
   children: childrenSchema(),
 });
 
-export const DesignNodeSchema: z.ZodType<DesignNode, z.ZodTypeDef, unknown> = z.lazy(() =>
+export const DesignNodeSchema: z.ZodType<DesignNode, unknown> = z.lazy(() =>
   z.discriminatedUnion("type", [
     FrameNodeSchema,
     GroupNodeSchema,

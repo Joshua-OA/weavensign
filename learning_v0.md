@@ -793,3 +793,98 @@ shape's specifics or loosening the match until it collided with badge/card. Writ
 narrow, independently-justified checks was more honest than one broad guess, and is
 consistent with `016`/`017`'s broader lesson that a single field or role name doesn't
 imply one underlying representation.
+
+### 027 — Called a halt on heuristic tuning: step 4 was never actually "done" by context.md's own definition, and six sessions of iteration had stopped being progress
+
+**What happened:** User pushed back directly: "you keep checking the readme what about
+context.md because it seems we have been running around in the same spot." Checked
+context.md against what `019`-`026` had actually been doing. §2's step-4 done-when is
+"scores ≥ an agreed precision/recall bar against the hand-labeled eval set (§7)"; §7 says
+"no accuracy claim about the normalization layer is meaningful without a number from this
+set." Neither half of that condition was ever satisfied: no bar was ever agreed with the
+user (every score in the README was framed as "a rough baseline," never checked against a
+target), and the labels themselves are still the unreviewed AI draft flagged in `018` and
+re-flagged in every session since (`020`, `022`, `024`, `025`, `026`) without ever actually
+being addressed. Six sessions of "found a gap, pulled real nodes, wrote a narrow rule,
+rescored, confirmed no regression" was genuinely good methodology each time — but the
+loop itself had no exit condition, because the two things that would end it (an agreed
+bar, reviewed labels) were never pinned down to begin with.
+
+**Fix:** Asked the user directly rather than guessing at a bar or unilaterally deciding
+the review was optional. Given three explicit options (do the label review now, agree a
+pragmatic bar against draft labels and call it done, or explicitly treat normalization as
+provisional and move to step 5 regardless), user chose the third: stop tuning heuristics
+for now, proceed to step 5 (MCP server) with normalization's current state — heuristics
+implemented, gaps documented in README, labels still unreviewed — as a known, named
+limitation rather than a silently-skipped gate.
+
+**Lesson:** A well-run iteration loop (real data, no guessing, rescore every fixture, check
+for regressions) can still be the wrong use of time if the loop's stopping condition was
+never defined. context.md itself already specified that stopping condition (§2, §7) —
+the mistake wasn't missing information, it was not checking a standing spec against six
+sessions of accumulated activity until the user asked why progress felt circular. When a
+project has a written build-order/definition-of-done doc, re-check current work against
+it periodically, not just at the start of each session — "are we following the rules we
+already wrote down" is a question worth asking on a cadence, not just once at kickoff.
+Sequencing violations are explicitly called out in context.md §2 as "the most expensive
+mistake on this project" — this wasn't a violation of the *order* (step 4 before step 5),
+but the same failure mode one level down: treating an unbounded loop inside a step as
+equivalent to finishing that step.
+
+### 028 — Step 5 scaffold: MCP SDK 1.29.0 only typechecks with zod v4, not zod 3.25.x, despite claiming both as peer deps
+
+**What happened:** Scaffolded `/mcp-server` (three tools: `get_figma_design`,
+`get_penpot_page`, `classify_roles`, per user's explicit design choices — source-specific
+tools, normalization as a separate tool not bundled into fetch, tokens via env var at
+startup). `@modelcontextprotocol/sdk@1.29.0`'s `package.json` declares
+`peerDependencies: { zod: "^3.25 || ^4.0" }`. Bumped zod from the existing 3.23.8 (pinned
+across schema/adapters/normalization) to 3.25.76 to satisfy that range — and immediately
+hit `TS2589: Type instantiation is excessively deep and possibly infinite` on every
+`server.registerTool(...)` call, even a minimal single-string-field one with no relation
+to this project's recursive `DesignNodeSchema`. Isolated the repro outside the repo (a
+throwaway 6-line `registerTool` call, nothing else) to rule out anything project-specific
+before concluding it was a real SDK issue. Confirmed directly: the same 6-line repro
+typechecks cleanly under zod v4 (`4.1.13`) and fails under zod `3.25.76`, with identical
+TypeScript version. The SDK's `zod-compat.d.ts` internally branches on
+`z3.ZodTypeAny | z4.$ZodType` — the v3 branch of that compat layer is what blows the
+instantiation depth; the peer-dep range claiming both work is aspirational/best-effort,
+not actually verified for the v3 side at this SDK version.
+
+**Fix:** Asked the user rather than guessing at scope — three options (bump everything to
+zod v4, pin an older SDK release, or work around TS2589 locally in mcp-server only).
+User chose the full v4 bump. Rippled through every package pinning zod: `schema`,
+`adapter-figma`, `adapter-penpot`, `mcp-server` all bumped `3.23.8` → `4.4.3`. Two real
+v3→v4 breaking changes surfaced in schema/adapter source (not test files): `z.ZodType<T,
+Def, Input>`'s middle `ZodTypeDef` type parameter was removed — v4's `ZodType` takes only
+`<Output, Input>` — so every recursive-schema annotation using the `003` house pattern
+(`schema/src/nodes.ts`'s `DesignNodeSchema`/`childrenSchema`, `adapters/figma/src/raw-node.ts`'s
+`RawNodeSchema`/`childrenSchema`) needed its 3-arg annotation trimmed to 2-arg. No other
+source-level breakage — every adapter/normalization/eval test passed unchanged, and
+rescoring all three eval fixtures post-bump produced bit-identical numbers to pre-bump,
+confirming the migration was a pure type-level fix with zero behavioral change.
+
+**Caught along the way:** running the full `npm run typecheck` (which chains a second
+`tsconfig.typecheck.json` covering test files, on top of the `tsconfig.json --noEmit` that
+excludes them) surfaced a real, pre-existing bug in my own `026` session's test fixture —
+`classify-vector.test.ts`'s `makeTextChild` helper used `characters`/`textStyle` fields
+directly on a mocked `TextNode`, but `TextNode.content` is actually `{ runs: [{characters,
+style}], align, autoResize }` (per `typography.ts`), and `TextStyle` uses `fontSizePx`/
+`letterSpacingPx`, not `fontSize`. This had been silently wrong since `026` — vitest
+doesn't typecheck, so the 31 passing tests never caught it, and my own `npx tsc --noEmit`
+checks during that session used the plain `tsconfig.json` (excludes `*.test.ts`), never
+the second config. Fixed the fixture to match the real schema shape once the zod bump's
+full-repo typecheck pass surfaced it.
+
+**Lesson:** Three points. (1) A library's peer-dependency range is a claim, not a
+guarantee — "we support ^3.25 || ^4.0" turned out to mean "v4 is the tested path, v3 is
+best-effort and has a live bug at this version," discoverable only by actually
+typechecking against both, not by reading the peerDependencies field. (2) When a version
+bump is going to touch every package in a monorepo (not just the new one), stop and ask
+before picking a target version — the zod 3.23.8→3.25.76 bump alone would have been
+low-risk, but 3.25.76→4.x is a real breaking-change jump across four packages, exactly
+the kind of dependency-discipline call context.md §4.5 reserves for a written decision,
+not a silent pick. (3) Always run the *full* typecheck command (`npm run typecheck`, which
+chains both tsconfig files here), not just a quick `tsc --noEmit` in one directory — the
+narrower command had been silently skipping test-file typechecking all along, and a bug
+sat undetected for two full sessions until a broader, unrelated change happened to run
+the complete check.

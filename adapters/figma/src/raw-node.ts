@@ -99,12 +99,8 @@ export interface RawInstanceNode extends RawNodeCommon {
   children: RawNode[];
 }
 
-function childrenSchema(): z.ZodType<RawNode[], z.ZodTypeDef, unknown> {
-  return z.lazy(() => z.array(RawNodeSchema)) as unknown as z.ZodType<
-    RawNode[],
-    z.ZodTypeDef,
-    unknown
-  >;
+function childrenSchema(): z.ZodType<RawNode[], unknown> {
+  return z.lazy(() => z.array(RawNodeSchema)) as unknown as z.ZodType<RawNode[], unknown>;
 }
 
 export const RawFrameNodeSchema = z.object({
@@ -152,7 +148,7 @@ export const RawInstanceNodeSchema = z.object({
   children: childrenSchema(),
 });
 
-export const RawNodeSchema: z.ZodType<RawNode, z.ZodTypeDef, unknown> = z.lazy(() =>
+export const RawNodeSchema: z.ZodType<RawNode, unknown> = z.lazy(() =>
   z.discriminatedUnion("type", [
     RawFrameNodeSchema,
     RawGroupNodeSchema,

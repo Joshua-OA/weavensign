@@ -25,8 +25,24 @@ function makeTextChild(id: string): DesignNode {
     geometry: { position: { x: 0, y: 0 }, size: { width: 40, height: 16 }, rotationDegrees: 0 },
     type: "text",
     style: { fills: [], strokes: [], effects: [], opacity: 1, blendMode: "normal" },
-    characters: "Button",
-    textStyle: { fontFamily: "Inter", fontSize: 14, fontWeight: 400, fontStyle: "normal", textAlign: "left" },
+    content: {
+      runs: [
+        {
+          characters: "Button",
+          style: {
+            fontFamily: "Inter",
+            fontSizePx: 14,
+            fontWeight: 400,
+            fontStyle: "normal",
+            letterSpacingPx: 0,
+            textDecoration: "none",
+            textCase: "none",
+          },
+        },
+      ],
+      align: "left",
+      autoResize: "none",
+    },
   };
 }
 
