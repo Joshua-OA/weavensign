@@ -1,0 +1,23 @@
+[
+  {
+    "id": "8:10",
+    "name": "Frame 2",
+    "visible": true,
+    "locked": false,
+    "geometry": {
+      "position": { "x": 0, "y": 100 },
+      "size": { "width": 300, "height": 150 },
+      "rotationDegrees": 0
+    },
+    "type": "frame",
+    "style": {
+      "fills": [{ "type": "image", "assetRef": "25f24886b60bef4d77ebf1a1658997bb75772fb7", "scaleMode": "stretch" }],
+      "strokes": [],
+      "effects": [],
+      "opacity": 1,
+      "blendMode": "normal"
+    },
+    "clipsContent": true,
+    "children": []
+  }
+]

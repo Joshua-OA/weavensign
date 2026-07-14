@@ -1,8 +1,8 @@
 import { assertNever, type DesignNode } from "@weavensign/schema";
-import { geometryDeclarations, styleDeclarations, type CssDeclaration } from "./css-declarations.js";
+import { geometryDeclarations, styleDeclarations, textDeclarations, type CssDeclaration } from "./css-declarations.js";
 import { escapeHtml } from "./escape-html.js";
 import { renderSvgVector } from "./render-svg-vector.js";
-import { renderText, textAlignCss } from "./render-text.js";
+import { renderText } from "./render-text.js";
 import { stringifyRule } from "./stringify-css.js";
 
 /** Sanitizes a DesignNode id into a value safe to use as an HTML id / CSS selector (ids can contain characters like `:` that are valid in source data but not in a bare CSS identifier). */
@@ -51,8 +51,9 @@ function containerDeclarations(node: DesignNode): CssDeclaration[] {
  * Renders one DesignNode (and, for containers, its full subtree) into an HTML fragment
  * plus that fragment's CSS rules, appended to the shared `cssRules` accumulator. Every
  * node gets one absolutely-positioned element (or inline <svg>/<span>s for vector/text
- * leaves) — see css-declarations.ts for why `position: absolute` + a `position: relative`
- * container is the composition strategy for PositionSchema's parent-relative convention.
+ * leaves) — see css-declarations.ts for why `position: absolute` on each node's own rule
+ * is the entire composition strategy for PositionSchema's parent-relative convention,
+ * with no separate `position: relative` declaration needed anywhere.
  */
 export function renderNode(node: DesignNode, cssRules: string[]): string {
   if (node.visible === false) {
@@ -61,7 +62,7 @@ export function renderNode(node: DesignNode, cssRules: string[]): string {
 
   switch (node.type) {
     case "text": {
-      cssRules.push(stringifyRule(cssSelector(node.id), [...geometryDeclarations(node.geometry), { prop: "text-align", value: textAlignCss(node.content.align) }]));
+      cssRules.push(stringifyRule(cssSelector(node.id), textDeclarations(node.geometry, node.content.align, node.content.autoResize)));
       return `<div id="${htmlId(node.id)}">${renderText(node)}</div>`;
     }
     case "vector": {

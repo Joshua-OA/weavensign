@@ -1,0 +1,40 @@
+[
+  {
+    "id": "28:86",
+    "name": "Home",
+    "visible": true,
+    "locked": false,
+    "geometry": {
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 46, "height": 19 },
+      "rotationDegrees": 0
+    },
+    "type": "text",
+    "style": {
+      "fills": [{ "type": "solid", "color": { "r": 0.325, "g": 0.192, "b": 0.075, "a": 1 } }],
+      "strokes": [],
+      "effects": [],
+      "opacity": 1,
+      "blendMode": "normal"
+    },
+    "content": {
+      "runs": [
+        {
+          "characters": "Home",
+          "style": {
+            "fontFamily": "Raleway",
+            "fontWeight": 500,
+            "fontStyle": "normal",
+            "fontSizePx": 16.11,
+            "lineHeightPx": 18.92,
+            "letterSpacingPx": 0,
+            "textDecoration": "none",
+            "textCase": "none"
+          }
+        }
+      ],
+      "align": "left",
+      "autoResize": "width-and-height"
+    }
+  }
+]

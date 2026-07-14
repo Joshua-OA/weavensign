@@ -57,4 +57,33 @@ describe("renderDocument", () => {
     expect(frameRule).toContain("position: absolute");
     expect(frameRule).not.toContain("position: relative");
   });
+
+  it("matches the golden file for a real image-fill node (rendered as a placeholder, not a broken <img>)", () => {
+    const nodes = loadFixture("image-fill-placeholder");
+    expect(renderDocument(nodes)).toBe(loadGolden("image-fill-placeholder"));
+  });
+
+  it("renders an image-only fill as a striped placeholder, not an <img> tag pointing at an unresolvable assetRef", () => {
+    const nodes = loadFixture("image-fill-placeholder");
+    const html = renderDocument(nodes);
+    expect(html).not.toContain("<img");
+    expect(html).not.toContain("25f24886b60bef4d77ebf1a1658997bb75772fb7");
+    expect(html).toContain("repeating-linear-gradient");
+  });
+
+  it("matches the golden file for a real hug-contents (width-and-height autoResize) text node", () => {
+    const nodes = loadFixture("text-hug-contents");
+    expect(renderDocument(nodes)).toBe(loadGolden("text-hug-contents"));
+  });
+
+  it("renders width-and-height autoResize text with width/height: auto instead of the source geometry's fixed pixels", () => {
+    const nodes = loadFixture("text-hug-contents");
+    const html = renderDocument(nodes);
+    const ruleMatch = html.match(/#node-28-86 \{[^}]*\}/);
+    expect(ruleMatch).not.toBeNull();
+    const rule = ruleMatch![0];
+    expect(rule).toContain("width: auto");
+    expect(rule).toContain("height: auto");
+    expect(rule).not.toContain("width: 46px");
+  });
 });

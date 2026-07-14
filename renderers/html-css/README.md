@@ -39,7 +39,10 @@ byte (context.md §4.7).
   arbitrary path geometry.
 - `render-text.ts` — a `TextNode`'s `content.runs` become one `<span>` per run, each
   carrying its own inline style — a direct mapping, since a `TextRun` is already defined
-  as "contiguous characters sharing one style."
+  as "contiguous characters sharing one style." `css-declarations.ts`'s
+  `textDeclarations` handles the node-level box: `width-and-height` autoResize (hug
+  contents) gets `width: auto; height: auto` instead of the source's fixed pixel box, so
+  it doesn't fight the browser's own text layout.
 - `format-value.ts` — the only place numeric/color rounding happens. Real design-tool
   data carries float noise (e.g. `39.999999994571226px`, see learning_v0.md #023);
   pixels round to 2 decimals, color channels to 0-255 integers, so output stays
@@ -57,12 +60,17 @@ byte (context.md §4.7).
 
 ## Known gaps
 
-- Only solid fills/strokes are mapped to CSS. Gradient and image fills exist in the
-  schema (`GradientFillSchema`, `ImageFillSchema`) but aren't rendered yet — a node with
-  only a gradient/image fill currently renders with no background at all rather than an
-  approximation. Tracked here, not silently guessed at.
-- Text auto-resize (`TextContent.autoResize`) is not mapped — every text node is sized
-  to its node geometry regardless of the `none`/`width-and-height`/`height`/`truncate`
-  value.
+- Solid fills/strokes map directly to CSS. Image fills (`ImageFillSchema`) render as a
+  visible striped placeholder, not the real image — `assetRef` is Figma's opaque
+  internal image hash, and no asset-resolution layer exists anywhere in this project yet
+  to turn it into a fetchable URL, so a real `<img src>` isn't possible without that
+  layer being built first (a bigger, separate scope than this renderer). Gradient fills
+  (`GradientFillSchema`) have zero real examples in any eval fixture so far — per
+  context.md §7's rule against building from a guess when no real data exists to check
+  it against, they're left unrendered until a real one shows up.
+- Text auto-resize: `none` (fixed box) and `width-and-height` (hug contents, both
+  dimensions) are mapped — both have real fixture coverage. `height` and `truncate` have
+  zero real examples in any eval fixture and are left unmapped for the same reason as
+  gradients above.
 - `ComponentNode`/`ComponentInstanceNode` render identically to `frame`/`group` — no
   distinction is made between a component definition and an instance's overrides yet.

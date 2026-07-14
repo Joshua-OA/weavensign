@@ -983,3 +983,59 @@ an assertion that merely checked "did this produce non-empty HTML" — this is t
 equivalent of learning_v0.md's repeated theme (`001`/`006`/`012`/`018` etc.) that a design
 built from reasoning about the shape of a problem, without checking real output, is a
 hypothesis until verified against what actually comes out.
+
+### 031 — Closing the renderer's own known gaps: real data ruled out gradients/`height`/`truncate`, and surfaced a real missing-infrastructure blocker for image fills
+
+**What happened:** Followed up on `030`'s scaffold by working through its three
+documented gaps (image/gradient fills, text auto-resize, component-instance overrides),
+starting the same way every fix in this log does — pulling real nodes from the eval
+fixtures before writing anything. Two findings shaped scope directly: (1) grepping all
+three eval fixtures for gradient fills found zero real examples (17 real `image` fills,
+0 `gradient` fills) — per context.md §7's standing rule against building from a guess
+when no real data exists to check it against (already applied to badges in `019`, avatars
+in `022`/`023`, input-fields in `026`), gradients stay unrendered rather than guessing a
+CSS `linear-gradient()` shape with nothing real to verify it against. (2) Inspecting a
+real image-fill node found `assetRef` is Figma's raw internal image hash
+(`paint.imageRef`, passed through unresolved by `adapters/figma/src/map-paint.ts`) — no
+asset-fetch/resolution layer exists anywhere in the project (not in any adapter, not in
+context.md's build order) to turn that hash into a fetchable URL. This isn't a renderer
+gap at all; it's a missing upstream layer the renderer can't route around, flagged to the
+user directly before writing any fill-rendering code rather than faking a broken `<img
+src>` or guessing at a resolution scheme.
+
+**Fix:** User chose a visible striped placeholder for image-only fills (a repeating
+diagonal-gradient CSS pattern, clearly not attempting to show the real asset) over
+silence or a fake URL. `styleDeclarations` (css-declarations.ts) now checks for an image
+fill only when no solid fill is present, and applies `PLACEHOLDER_FILL_CSS` — kept
+structurally separate from `GradientFillSchema` rendering so a future real asset-resolution
+layer can replace just this one branch without touching gradient logic. For text
+auto-resize, pulled a real `width-and-height` (hug-contents) node (`28:86`, "Home" nav
+label) and a real `none` (fixed-box) node were both already covered — `height` and
+`truncate` have zero real examples in any fixture, so left unmapped for the same "no real
+data" reason as gradients. `textDeclarations` (new function, css-declarations.ts) swaps
+`width`/`height` to `auto` only for `width-and-height`, leaving `none`'s existing fixed-px
+behavior untouched. Two new fixture/golden pairs added
+(`image-fill-placeholder`, `text-hug-contents`), both built from real eval-fixture nodes
+(trimmed to compact standalone fixtures, values kept real/plausible rather than invented),
+both schema-validated before use. `simple-card`'s existing golden output is byte-identical
+after these changes (uses `autoResize: "none"`, confirming no regression) — checked, not
+assumed.
+
+**What was deliberately not done:** `ComponentNode`/`ComponentInstanceNode` rendering
+distinction — the third gap from `030` — wasn't touched this pass; ran out of clearly-scoped
+real-data-backed work to do on it without either guessing at what "override rendering"
+should look like or needing the still-unresolved cross-file component reference gap
+(`adapters/figma`'s README, referenced in `010`) resolved first. Left as an open gap,
+not silently addressed.
+
+**Lesson:** Two points, both reinforcing lessons already established elsewhere in this
+log but now shown to apply at the renderer layer too. (1) "No real data exists for X" is
+itself a valid, actionable finding — it's not a blocker to route around by inventing a
+plausible-looking shape, it's a signal to explicitly scope X out and document why, the
+same discipline `019`/`022`/`023`/`026` already established for the normalization layer.
+(2) A "known gap" can turn out, on inspection, to not be a gap in *this* module at all —
+image-fill rendering looked like a renderer task from `030`'s framing, but the real
+blocker was a missing adapter/infrastructure layer several steps upstream; catching that
+distinction before writing code (asking the user rather than quietly deciding "renderer
+just can't do images") kept the fix scoped to what this module can actually own, and
+named the real gap (asset resolution) in the right place instead of papering over it here.

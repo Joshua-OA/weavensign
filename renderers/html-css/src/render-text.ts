@@ -46,8 +46,3 @@ export function renderText(node: TextNode): string {
     .map((run) => `<span style="${runStyleAttr(run.style)}">${escapeHtml(run.characters)}</span>`)
     .join("");
 }
-
-/** Maps TextContent.align to the CSS text-align value (identical vocabulary). */
-export function textAlignCss(align: TextNode["content"]["align"]): string {
-  return align;
-}
