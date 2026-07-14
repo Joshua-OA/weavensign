@@ -13,6 +13,7 @@ export function createServer(): McpServer {
       title: "Get Figma design",
       description: "Fetch a Figma node (and its descendants) and map it into the canonical DesignNode schema.",
       inputSchema: GET_FIGMA_DESIGN_INPUT_SHAPE,
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
     getFigmaDesign,
   );
@@ -23,6 +24,7 @@ export function createServer(): McpServer {
       title: "Get Penpot page",
       description: "Fetch a Penpot page and map its shape graph into the canonical DesignNode schema.",
       inputSchema: GET_PENPOT_PAGE_INPUT_SHAPE,
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
     getPenpotPage,
   );
@@ -33,6 +35,7 @@ export function createServer(): McpServer {
       title: "Classify node roles",
       description: "Run the normalization heuristics against a DesignNode tree, returning a role assignment per node.",
       inputSchema: CLASSIFY_ROLES_INPUT_SHAPE,
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     classifyRoles,
   );

@@ -888,3 +888,44 @@ chains both tsconfig files here), not just a quick `tsc --noEmit` in one directo
 narrower command had been silently skipping test-file typechecking all along, and a bug
 sat undetected for two full sessions until a broader, unrelated change happened to run
 the complete check.
+
+### 029 — Step 5's real MCP Inspector run: two bugs the raw-stdio smoke test in `028` never would have caught
+
+**What happened:** `028` closed with a raw JSON-RPC stdio smoke test standing in for a
+real Inspector run, since Inspector needs a browser session unavailable in that context.
+User ran the actual Inspector UI by hand this session. Two real problems surfaced that the
+stdio substitute genuinely could not have caught: (1) Inspector's own STDIO transport
+launcher failed with "Command not found, transports removed" when the Command/Arguments
+fields held the bare relative values `node` / `dist/server.js` — Inspector's proxy process
+doesn't run with `mcp-server/` as its cwd and doesn't resolve `node` through the same PATH
+resolution a shell would; fixed by entering absolute paths (`/usr/local/bin/node` per
+`which node`, and the full absolute path to `dist/server.js`) in the UI form fields. (2)
+Every registered tool showed a `✓ Destructive` badge in the Inspector UI — wrong for all
+three (`get_figma_design`/`get_penpot_page` only fetch, `classify_roles` only computes),
+because `registerTool`'s `annotations` field (`readOnlyHint`/`destructiveHint`/
+`idempotentHint`/`openWorldHint`) was never set in `create-server.ts`, so the SDK's
+defaults applied instead of this project's actual tool semantics.
+
+**Fix:** (1) is an environment/tooling gotcha, not a code bug — documented here so it
+isn't re-diagnosed from scratch next time Inspector is launched against this server; no
+source change needed. (2) is a real fix: added explicit `annotations` to all three
+`registerTool` calls — `readOnlyHint: true, destructiveHint: false, idempotentHint: true`
+on all three (none of them mutate anything or produce different output for the same
+input), `openWorldHint: true` on the two fetch tools (real external network calls),
+`openWorldHint: false` on `classify_roles` (pure local computation, no I/O).
+
+User then ran both remaining Inspector checks live: `classify_roles` against a real
+single-vector `DesignNode` returned the expected `{"nodeId":"1","role":"icon",
+"confidence":0.6}`; `get_figma_design` with no `FIGMA_TOKEN` set returned the clean
+`"FIGMA_TOKEN is not set in the server's environment."` tool-error result, not a crash —
+confirming §4.6's error-as-value contract holds through a real MCP client end to end, not
+just through unit tests exercising the function directly.
+
+**Lesson:** A protocol-level smoke test (raw JSON-RPC over stdio, as `028` did) proves the
+server speaks MCP correctly; it does not prove a *specific client's* launcher config or a
+tool's *declared metadata* are right — those are exactly the two things this session's
+real Inspector run caught that the substitute couldn't. Per context.md §6 ("every tool
+callable and inspectable via MCP Inspector before any real client config is attempted"),
+this is now genuinely satisfied for the first time — `028`'s stdio check was a reasonable
+stand-in given the constraints of that context, but it was never a full substitute, and
+this entry is the actual close-out of step 5's stated done-when.
