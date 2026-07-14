@@ -1039,3 +1039,45 @@ blocker was a missing adapter/infrastructure layer several steps upstream; catch
 distinction before writing code (asking the user rather than quietly deciding "renderer
 just can't do images") kept the fix scoped to what this module can actually own, and
 named the real gap (asset resolution) in the right place instead of papering over it here.
+
+### 032 — Smoke-testing the renderer against all three real eval fixtures: clean on first attempt, confirming `030`'s bug fix generalized
+
+**What happened:** Golden-file tests only cover two small, hand-built fixtures — real
+proof the renderer survives contact with large, previously-unexercised, real design-tool
+output (the same check `011`/`012` ran for the adapters, and `022` ran for the
+normalization heuristic) hadn't happened yet. Wrote `scripts/smoke-render.ts`, modeled
+directly on `eval/run-heuristic.ts`'s existing pattern (a manual verification tool, not
+part of `npm test`, run via `npx tsx`): loads every fixture in `/eval/fixtures`,
+schema-validates it, renders it, and checks render time, output size, HTML tag balance
+(`div`/`span`/`svg`/`path`/`style`/`head`/`body`/`html` open vs. close counts), and for
+literal `undefined`/`NaN` strings leaking into output (a common symptom of an unhandled
+`undefined` field silently stringifying instead of erroring).
+
+**Result:** All three real fixtures (261/389/161 nodes — Figma e-commerce, Penpot
+dashboard UI, Penpot pure-artwork) rendered cleanly on the first run: balanced tags, no
+`undefined`/`NaN`, render time 7–17ms even for the largest tree. Manually inspected a
+slice of the largest fixture's actual output (not just the pass/fail signal) to confirm
+it wasn't a false-positive-shaped success: the root frame's rendered size (1512×3717)
+matched the real page's known dimensions, nav-label text nodes correctly got
+`width: auto; height: auto` (the real `28:86` "Home" node from `031`'s fixture, now seen
+working at full-page scale, not just in isolation), and the real `8:10` image-fill node
+rendered its striped placeholder at its true 1512×550 size rather than the trimmed
+300×150 the standalone fixture used.
+
+**Fix (tooling, not renderer logic):** The new script lives outside `src/` (`scripts/`),
+which the package's `tsconfig.typecheck.json` didn't cover — adding `"scripts"` to its
+`include` first hit `TS6059` (`rootDir` mismatch, since the base config's `rootDir: "src"`
+is correct for the real `build` config but wrong for a `noEmit`-only typecheck pass that
+also wants to cover non-emitted scripts); fixed by overriding `rootDir: "."` specifically
+in `tsconfig.typecheck.json`, matching the same "typecheck config can differ from build
+config" pattern the adapters' own `tsconfig.typecheck.json` files already established.
+
+**Lesson:** A renderer built entirely from two small hand-crafted fixtures is a
+hypothesis about "does this work on real design output" until it's actually run against
+real output — same root lesson as `011`/`012`/`022`, now confirmed to hold at the
+renderer layer as cleanly as it did at the adapter and normalization layers. Clean first
+run isn't grounds to skip the manual inspection step, though — reading an actual slice of
+real rendered output (not just trusting the balanced-tags/no-crash signal) is what
+confirmed `030`'s position-override fix and `031`'s auto-resize/placeholder logic both
+generalize correctly at full scale, not just in the small fixtures they were built and
+tested against.

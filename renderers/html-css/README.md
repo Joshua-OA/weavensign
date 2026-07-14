@@ -57,6 +57,13 @@ byte (context.md §4.7).
   §4.8).
 - `render-document.test.ts` also asserts determinism directly (render the same fixture
   twice, expect byte-identical output) per §4.7 — not just a normal correctness check.
+- `scripts/smoke-render.ts` (`npx tsx renderers/html-css/scripts/smoke-render.ts`) runs
+  the renderer against every real fixture in `/eval/fixtures` — not golden-file tested
+  (too large to review byte-for-byte), just checked for crashes, balanced HTML tags, no
+  literal `undefined`/`NaN` leaking into output, and render time. Same "survive contact
+  with real, previously-unexercised data" check the adapter sessions ran before calling
+  an adapter done (learning_v0.md #011/#012). Not part of `npm test`; a manual
+  verification tool, same pattern as `eval/run-heuristic.ts`.
 
 ## Known gaps
 
