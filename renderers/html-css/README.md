@@ -8,15 +8,20 @@ byte (context.md §4.7).
 ## May import
 
 - `@weavensign/schema`.
+- `@weavensign/renderer-shared`, for the format-agnostic `Geometry`/`Style` → CSS
+  declaration mapping shared with `renderer-jsx-tsx` (extracted once a second renderer
+  needed the exact same logic — see that package's README).
 - `postcss`, for building CSS output as an AST rather than string concatenation, so
   output is always syntactically valid.
 
 ## Must never import
 
-- `/adapters/*`, `/normalization`, `/mcp-server`. Renderers consume the canonical schema
-  only — they don't know or care where the tree came from, and don't need role labels to
-  produce structurally correct output (role-aware rendering, if ever added, is a separate
-  concern from this package's "make the pixels match" job).
+- `/adapters/*`, `/normalization`, `/mcp-server`, or `renderer-jsx-tsx`. Renderers
+  consume the canonical schema only — they don't know or care where the tree came from,
+  and don't need role labels to produce structurally correct output (role-aware
+  rendering, if ever added, is a separate concern from this package's "make the pixels
+  match" job). Sibling renderers never import each other directly, only through
+  `renderer-shared`.
 
 ## How it works
 
@@ -28,8 +33,9 @@ byte (context.md §4.7).
   node's own rule is what establishes the positioned-ancestor context its children's
   `left`/`top` resolve against, so no node ever needs a separate `position: relative`
   declaration (a mistake caught during this package's first pass — see learning_v0.md).
-- `css-declarations.ts` — `Geometry`/`Style` → CSS declaration list (plain data, not
-  strings yet).
+- `@weavensign/renderer-shared`'s `css-declarations.ts` — `Geometry`/`Style` → CSS
+  declaration list (plain data, not strings yet). Lives in the shared package now, not
+  here.
 - `stringify-css.ts` — declaration list → a CSS rule string, via postcss's AST with
   explicit `raws` so whitespace/semicolon output is pinned, not left to postcss's
   defaults (a transitive version bump silently changing generated output would be a
@@ -39,14 +45,10 @@ byte (context.md §4.7).
   arbitrary path geometry.
 - `render-text.ts` — a `TextNode`'s `content.runs` become one `<span>` per run, each
   carrying its own inline style — a direct mapping, since a `TextRun` is already defined
-  as "contiguous characters sharing one style." `css-declarations.ts`'s
-  `textDeclarations` handles the node-level box: `width-and-height` autoResize (hug
-  contents) gets `width: auto; height: auto` instead of the source's fixed pixel box, so
-  it doesn't fight the browser's own text layout.
-- `format-value.ts` — the only place numeric/color rounding happens. Real design-tool
-  data carries float noise (e.g. `39.999999994571226px`, see learning_v0.md #023);
-  pixels round to 2 decimals, color channels to 0-255 integers, so output stays
-  deterministic and readable rather than re-exposing upstream float drift.
+  as "contiguous characters sharing one style." `renderer-shared`'s `textDeclarations`
+  handles the node-level box: `width-and-height` autoResize (hug contents) gets
+  `width: auto; height: auto` instead of the source's fixed pixel box, so it doesn't
+  fight the browser's own text layout.
 
 ## Testing
 

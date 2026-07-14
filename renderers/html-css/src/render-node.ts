@@ -1,5 +1,5 @@
 import { assertNever, type DesignNode } from "@weavensign/schema";
-import { geometryDeclarations, styleDeclarations, textDeclarations, type CssDeclaration } from "./css-declarations.js";
+import { geometryDeclarations, styleDeclarations, textDeclarations, type CssDeclaration } from "@weavensign/renderer-shared";
 import { escapeHtml } from "./escape-html.js";
 import { renderSvgVector } from "./render-svg-vector.js";
 import { renderText } from "./render-text.js";

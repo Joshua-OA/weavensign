@@ -1,6 +1,6 @@
 import type { TextNode, TextStyle } from "@weavensign/schema";
+import { formatColor, formatPx } from "@weavensign/renderer-shared";
 import { escapeHtml } from "./escape-html.js";
-import { formatColor, formatPx } from "./format-value.js";
 
 const TEXT_DECORATION_CSS: Record<TextStyle["textDecoration"], string> = {
   none: "none",

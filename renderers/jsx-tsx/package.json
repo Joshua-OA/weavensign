@@ -1,7 +1,7 @@
 {
-  "name": "@weavensign/renderer-html-css",
+  "name": "@weavensign/renderer-jsx-tsx",
   "version": "0.1.0",
-  "description": "Deterministic, pure rendering from the canonical DesignNode tree to a self-contained HTML/CSS document",
+  "description": "Deterministic, pure rendering from the canonical DesignNode tree to a self-contained React (TSX) component",
   "license": "GPL-3.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -22,11 +22,14 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@babel/generator": "7.29.7",
+    "@babel/types": "7.29.7",
     "@weavensign/renderer-shared": "0.1.0",
     "@weavensign/schema": "0.2.0",
-    "postcss": "8.5.19"
+    "prettier": "3.9.5"
   },
   "devDependencies": {
+    "@types/babel__generator": "7.27.0",
     "@types/node": "20.14.15",
     "typescript": "5.5.4",
     "vitest": "2.0.5"

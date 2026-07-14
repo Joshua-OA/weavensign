@@ -1,5 +1,5 @@
 import postcss from "postcss";
-import type { CssDeclaration } from "./css-declarations.js";
+import type { CssDeclaration } from "@weavensign/renderer-shared";
 
 /**
  * Builds one CSS rule (selector + declarations) as a deterministic string via postcss's

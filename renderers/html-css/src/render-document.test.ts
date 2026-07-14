@@ -7,9 +7,13 @@ import { renderDocument } from "./render-document.js";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.join(MODULE_DIR, "..");
+// Fixtures live in the sibling renderer-shared package (renderers/shared/fixtures), not
+// here — both html-css and jsx-tsx test against the exact same DesignNode[] inputs, see
+// that package's README for why this is a single shared source rather than two copies.
+const SHARED_FIXTURES_DIR = path.join(PACKAGE_ROOT, "..", "shared", "fixtures");
 
 function loadFixture(name: string): DesignNode[] {
-  const raw = JSON.parse(readFileSync(path.join(PACKAGE_ROOT, "fixtures", `${name}.json`), "utf-8")) as unknown[];
+  const raw = JSON.parse(readFileSync(path.join(SHARED_FIXTURES_DIR, `${name}.json`), "utf-8")) as unknown[];
   return raw.map((node) => DesignNodeSchema.parse(node));
 }
 

@@ -11,7 +11,9 @@
     "normalization",
     "eval",
     "mcp-server",
-    "renderers/html-css"
+    "renderers/shared",
+    "renderers/html-css",
+    "renderers/jsx-tsx"
   ],
   "engines": {
     "node": ">=20"

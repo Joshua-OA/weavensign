@@ -1,5 +1,5 @@
 import type { VectorNode } from "@weavensign/schema";
-import { formatColor, formatNumber } from "./format-value.js";
+import { formatColor, formatNumber } from "@weavensign/renderer-shared";
 
 /**
  * Renders a VectorNode's paths as an inline <svg>, sized to the node's own bounding box.

@@ -1081,3 +1081,117 @@ real rendered output (not just trusting the balanced-tags/no-crash signal) is wh
 confirmed `030`'s position-override fix and `031`'s auto-resize/placeholder logic both
 generalize correctly at full scale, not just in the small fixtures they were built and
 tested against.
+
+---
+
+## 2026-07-10 (session, continued — step 6b, JSX/TSX renderer)
+
+User chose to continue directly to the second renderer named in context.md §2's table
+(JSX/TSX) rather than stop at HTML/CSS. Confirmed several design decisions with the user
+before writing code, same discipline as the HTML/CSS renderer's kickoff: inline
+`style={{...}}` objects (not CSS Modules), one flat function component per tree (not one
+component per container node), and — once it became clear `css-declarations.ts`/
+`format-value.ts` were fully format-agnostic (every value already a valid CSS-syntax
+string, usable as-is in either a stylesheet rule or a React style object) — extracting
+that logic into a new `/renderers/shared` package rather than duplicating or importing
+one renderer from the other (the latter would have violated §4.3's declared-dependency
+rule between sibling modules).
+
+### 033 — Babel 8's latest packages need a newer Node than this repo commits to; caught before it became everyone's problem
+
+**What happened:** context.md §3 names `@babel/types` + `@babel/generator` without a
+version — installing the current `npm view` latest (`8.0.4` / `8.0.0`) produced a real
+`npm warn EBADENGINE` on install: `@babel/helper-validator-identifier@8.0.4` requires
+Node `^22.18.0 || >=24.11.0`, this machine runs `22.16.0`. The repo's root `package.json`
+commits to `engines.node: ">=20"` for every contributor, not just this machine.
+
+**Fix:** Asked the user rather than silently picking a resolution — same pattern as the
+zod v3/v4 decision in `028`. Chose Babel 7.29.7 over bumping the repo's Node floor:
+confirmed via a direct probe that 7.29.7's AST-builder API (`jsxElement`,
+`objectExpression`, `jsxAttribute`, `jsxExpressionContainer`, etc.) is identical to 8.x
+for everything this renderer needs, and 7.29.7 installs with zero engine warnings.
+
+**Lesson:** "Latest" is not automatically the right version for a monorepo with a stated
+engine commitment — same root lesson as `028`'s zod finding (a version bump's real floor
+isn't visible from the package name alone, only from actually installing it and reading
+what npm reports), but this time caught *before* committing to a version and writing
+code against it, rather than after hitting a downstream typecheck failure.
+
+### 034 — Extracting renderer-shared: a real cross-cutting refactor, verified with the existing renderer's golden tests before trusting it
+
+**What happened:** Moved `css-declarations.ts` and `format-value.ts` (plus their now
+newly-written direct unit tests — previously only covered indirectly through
+`renderer-html-css`'s golden-file tests) into a new `@weavensign/renderer-shared`
+package, and updated every `renderer-html-css` file that imported them
+(`render-node.ts`, `render-svg-vector.ts`, `render-text.ts`, `stringify-css.ts`,
+`index.ts`) to import from the new package instead. Fixtures (`simple-card`,
+`image-fill-placeholder`, `text-hug-contents` — all built from real eval-fixture nodes
+per `031`) moved alongside them into `renderers/shared/fixtures`, since both renderers
+need the identical `DesignNode[]` inputs and a second copy would risk silent drift, same
+reasoning §4.5 already applies to third-party dependency duplication.
+
+**Verification, not assumption:** After the move, re-ran `renderer-html-css`'s full test
+suite (9 golden-file/determinism tests) and its real-fixture smoke script — both produced
+byte-identical output to before the extraction, confirming the refactor was a pure move
+with zero behavior change, not just "it compiles." This is the same discipline `020`/
+`023`/`025` established for heuristic changes (rescore every existing fixture before
+trusting a generalization) applied to a structural refactor instead of a logic change.
+
+**Lesson:** A refactor that moves code without changing it still needs the same
+"prove it, don't assume it" verification as a change that does — the risk isn't that the
+logic is wrong (it's the same functions, unmodified), it's that the move itself
+introduces a wiring mistake (wrong import path, missed call site, build-order issue
+between the new package and its consumer). Re-running the *existing* golden tests after
+the move is what actually proves that didn't happen; a clean typecheck alone only proves
+the types line up, not that the runtime behavior is unchanged.
+
+### 035 — A real crash while generating this renderer's own golden fixtures: raw JSX text can't contain a bare `<`
+
+**What happened:** Running the golden-fixture-generation script against the `simple-card`
+fixture (the same one already used for `renderer-html-css`, containing the text
+"Hello & \<world\>" specifically because it exercises HTML-escaping) crashed inside
+Prettier's parser: `SyntaxError: Unterminated JSX contents`. Root cause: `render-text.ts`'s
+`renderRunSpan` used `t.jsxText(run.characters)` to place the run's raw string directly as
+JSX child content — but JSX text nodes treat a bare `<` (and `{`, and `&`) as syntactically
+significant, so a literal `<` in real text breaks parsing entirely, the JSX equivalent of
+`renderer-html-css`'s `escapeHtml` requirement but manifesting as a hard parse failure
+instead of a silently-wrong-but-valid HTML string.
+
+**Fix:** Switched to `t.jsxExpressionContainer(t.stringLiteral(run.characters))` — a JS
+string literal has none of JSX-text's special-character restrictions (only ordinary JS
+string-escaping rules apply, which Babel's generator already handles correctly for any
+input), so wrapping text content in `{"..."}` sidesteps the whole class of problem rather
+than needing a JSX-specific escaping function to parallel `escapeHtml`. Re-ran the
+golden-fixture generation after the fix — all three fixtures (including the one that had
+just crashed) produced clean, valid output on the retry.
+
+**Lesson:** The exact fixture chosen specifically to exercise `renderer-html-css`'s
+escaping logic (`018`-era discipline: test the thing that's likely to break, not just the
+happy path) did its job again here, on a completely different renderer, for a
+structurally different reason (JSX-text parse failure vs. HTML-escaping correctness) —
+worth noting as a case where reusing a fixture built for one renderer's known-tricky case
+paid off immediately for a second renderer built later, without needing to separately
+discover that JSX has its own version of the same underlying problem (arbitrary user text
+colliding with the output format's own special characters).
+
+### 036 — Second renderer's real-fixture smoke test: clean on first run, confirming the shared-package extraction and JSX fix both generalize
+
+**What happened:** Built `scripts/smoke-render.ts` for `renderer-jsx-tsx`, mirroring
+`renderer-html-css`'s smoke-test pattern exactly (`032`) — ran `renderComponent` against
+all three real eval fixtures (261/389/161 nodes). All three rendered cleanly on the first
+attempt: no crashes, no `undefined`/`NaN`, render time 70–246ms (slower than the HTML
+renderer's 7–17ms, since Prettier formatting is heavier than postcss stringification, but
+still well within one-shot-render territory). Manually inspected a slice of the largest
+fixture's actual output again (not just the pass signal, same discipline as `032`):
+confirmed real page dimensions, hug-contents text, and the image-fill placeholder all
+match the HTML renderer's output structurally, and — specifically checking that `035`'s
+fix generalized past the one fixture that surfaced it — counted 70 real string-literal
+text spans (`{"..."}`) in the full page's output, confirming every text run in a
+261-node real page round-trips through the string-literal path without incident, not
+just the one "Hello & \<world\>" case that happened to crash first.
+
+**Lesson:** Same conclusion as `032`, now doubly confirmed: a clean smoke-test run
+against real, previously-unexercised data is worth demanding from every renderer before
+calling it done, not just the first one built. Nothing here was a new finding — it's the
+verification step that turns "the code looks right and the small fixtures pass" into an
+actual claim about real-world behavior, for a second renderer just as much as the first.
