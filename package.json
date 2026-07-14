@@ -13,7 +13,8 @@
     "mcp-server",
     "renderers/shared",
     "renderers/html-css",
-    "renderers/jsx-tsx"
+    "renderers/jsx-tsx",
+    "renderers/svg"
   ],
   "engines": {
     "node": ">=20"

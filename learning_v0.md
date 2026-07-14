@@ -1195,3 +1195,108 @@ against real, previously-unexercised data is worth demanding from every renderer
 calling it done, not just the first one built. Nothing here was a new finding — it's the
 verification step that turns "the code looks right and the small fixtures pass" into an
 actual claim about real-world behavior, for a second renderer just as much as the first.
+
+---
+
+## 2026-07-10 (session, continued — step 6c, SVG renderer, closing step 6)
+
+Third and final renderer named in context.md §1/§3/§5 (HTML/CSS and JSX/TSX already
+done). Confirmed scope with the user first: one `DesignNode[]` tree → one self-contained
+`<svg>` document, same "whole tree in, one output out" shape as the other two, not a
+narrower "export individual vector nodes" tool.
+
+### 037 — SVG's coordinate and paint models are different enough from CSS that reusing renderer-shared's CSS-declaration logic would have been the wrong call
+
+**What happened:** Before writing any mapping code, checked whether `renderer-shared`'s
+`css-declarations.ts` (already reused as-is by both HTML/CSS and JSX/TSX) would serve a
+third time. It wouldn't, for two real structural reasons, not just "different syntax":
+(1) SVG has no `position: absolute` concept — its native composition model is nesting
+plus `transform="translate(x, y)"`, so `geometryDeclarations`'s entire
+`position/left/top` output has no SVG equivalent to map onto, not even a renamed one;
+(2) SVG paints via presentation attributes on shapes (`fill`, `stroke`, `rx`) with a
+different initial-value model than CSS — critically, SVG's `fill` defaults to *black*
+when omitted, where CSS `background-color` defaults to transparent, so `styleDeclarations`'s
+"only emit background-color if a solid fill exists, otherwise omit the property entirely"
+pattern would silently paint every unfilled SVG shape solid black if copied over
+unchanged. Only `format-value.ts`'s `formatColor`/`formatNumber` (genuinely
+format-agnostic number/color rounding, no CSS-specific assumptions) carried over.
+
+**Fix:** Wrote `svg-attributes.ts` from scratch for this renderer, with an explicit
+`fill="none"` fallback for the no-fill case (verified against the real SVG spec, not
+assumed) instead of omitting the attribute. `render-node.ts`/`render-vector.ts` use
+`transform="translate(...)"` nesting throughout instead of any positioning declaration
+list at all.
+
+**Lesson:** "Two renderers already share this logic, so the third one probably should
+too" is exactly the kind of assumption context.md's whole build history argues against
+making without checking real behavior first (same root pattern as `008`: two things that
+look like "the same kind of thing" — an SVG shape's fill and a CSS box's background — can
+have genuinely different semantics, here specifically an initial-value default that
+would have caused a real, silent rendering bug (solid black shapes) if the CSS-shaped
+function had been reused unchanged. `renderer-shared`'s own README already scopes it as
+"format-agnostic mapping... into a list of CSS declarations" — SVG attributes were never
+actually in scope, and confirming that before writing code (rather than after hitting a
+bug) is what kept the black-fill mistake from ever shipping.
+
+### 038 — SVG has no equivalent for two real behaviors the other renderers already handle: text auto-resize and exact text-baseline position
+
+**What happened:** Two real gaps surfaced while mapping `TextContent`/`TextStyle` to
+SVG, neither fixable by "map it like the other renderers did." (1) SVG's `<text>` `y`
+coordinate is baseline-anchored; the schema's `Geometry` is box-top-anchored (same
+convention the HTML/JSX renderers' `top`/`height` boxes use) and carries no real
+font-metrics field (no ascent/descent/baseline — checked `typography.ts` directly,
+confirmed absent, not assumed missing) to convert exactly between the two. (2)
+`TextContent.autoResize`'s `width-and-height` (hug contents) maps to CSS `width: auto;
+height: auto` in the other two renderers — SVG's `viewBox` has no equivalent mechanism to
+size itself to rendered text content without an actual layout engine computing it first.
+
+**Fix:** (1) Approximated the baseline offset as `fontSizePx * 0.8`, documented explicitly
+in `BASELINE_RATIO`'s doc comment as an approximation with no real font-metrics backing
+it — not presented as if it were as precise as the geometry-derived values elsewhere in
+this renderer. (2) Left `autoResize` completely unmapped for this renderer specifically
+(every text node uses its fixed source geometry, `none` and `width-and-height` alike) —
+a real, documented behavioral difference from the HTML/JSX renderers' partial `autoResize`
+support, not silently identical treatment.
+
+**Lesson:** Not every gap between renderers targeting the same canonical schema is a bug
+to be closed with more real data — some are genuine differences in what the target
+format is capable of expressing at all. `031`'s "no real data exists for X" pattern (skip
+it, document why) covers gaps caused by *missing information*; this is a different
+category, gaps caused by the *output format itself having no mechanism* for a concept the
+schema and the other renderers do support — worth distinguishing the two in each
+renderer's README so a future reader doesn't mistake "SVG can't do this" for "nobody's
+gotten around to it yet."
+
+### 039 — SVG renderer's real-fixture smoke test caught one real gap (cornerRadius unmapped) before it shipped
+
+**What happened:** Same discipline as `032`/`036` — before calling the renderer done, ran
+it against the `simple-card` fixture (a card with `cornerRadius: 8`) and actually read the
+output, not just checked it didn't crash. The rendered `<rect>` had no `rx` attribute at
+all — `render-node.ts`'s `renderContainerBackground` built the background rect from
+`width`/`height`/fill attributes only, never read `style.cornerRadius`, an omission that
+would have silently dropped every rounded-corner container's rounding in SVG output while
+the other two renderers preserved it correctly.
+
+**Fix:** Added an `rx` attribute (SVG's corner-radius equivalent) sourced from
+`style.cornerRadius`, only emitted when the field is present — mirrors the other
+renderers' "only emit non-default declarations" pattern. Re-ran the fixture; `rx="8"`
+now present in the output, and svgo left the `<rect>` un-flattened once `rx` made it
+non-trivial to collapse to a bare `<path>` (an incidental confirmation that svgo's
+optimization behavior is itself sensitive to which attributes are present — another
+reason `render-document.ts` pins an exact svgo version rather than tracking latest, since
+a future svgo release changing its flattening heuristics could silently change output
+shape for reasons having nothing to do with this renderer's own code).
+
+**Lesson:** Same conclusion as `032`/`036`, holding for the third time running: manually
+reading a real render's actual output — not just trusting "it ran without throwing" — is
+what catches an omitted field that a type-checker has no way to flag (missing an
+optional-field read isn't a type error) and that a crash-only smoke test would never
+surface either, since a rounded rect rendering as a square rect is a silent correctness
+bug, not a thrown exception.
+
+Step 6 (renderers) is now complete per context.md §1/§3/§5's three named formats
+(HTML/CSS, JSX/TSX, SVG) — all three share `renderer-shared`'s number/color formatting
+(and, where applicable, CSS declarations), all three pass golden-file + determinism
+tests, all three have been smoke-tested against real, previously-unexercised design data
+with manually-verified output, and all three document their real known gaps rather than
+silently guessing at unmapped cases.
