@@ -1,0 +1,68 @@
+# @weavensign/renderer-html-css
+
+One job: deterministic, pure translation from a canonical `DesignNode[]` tree into a
+self-contained HTML/CSS document string. No AI, no inference — that already happened in
+the normalization layer, if at all. Same input always produces the same output, byte for
+byte (context.md §4.7).
+
+## May import
+
+- `@weavensign/schema`.
+- `postcss`, for building CSS output as an AST rather than string concatenation, so
+  output is always syntactically valid.
+
+## Must never import
+
+- `/adapters/*`, `/normalization`, `/mcp-server`. Renderers consume the canonical schema
+  only — they don't know or care where the tree came from, and don't need role labels to
+  produce structurally correct output (role-aware rendering, if ever added, is a separate
+  concern from this package's "make the pixels match" job).
+
+## How it works
+
+- `render-document.ts` — public entry point. `renderDocument(roots: DesignNode[]): string`
+  walks the tree once, returns one complete `<!DOCTYPE html>` document with an inline
+  `<style>` block.
+- `render-node.ts` — per-node-type dispatch via `switch` + `assertNever` (context.md
+  §4.1). Every node becomes one absolutely-positioned `<div>`; `position: absolute` on a
+  node's own rule is what establishes the positioned-ancestor context its children's
+  `left`/`top` resolve against, so no node ever needs a separate `position: relative`
+  declaration (a mistake caught during this package's first pass — see learning_v0.md).
+- `css-declarations.ts` — `Geometry`/`Style` → CSS declaration list (plain data, not
+  strings yet).
+- `stringify-css.ts` — declaration list → a CSS rule string, via postcss's AST with
+  explicit `raws` so whitespace/semicolon output is pinned, not left to postcss's
+  defaults (a transitive version bump silently changing generated output would be a
+  determinism bug, not a minor version bump — context.md §4.5).
+- `render-svg-vector.ts` — a `VectorNode`'s `paths` (SVG path-data strings already, per
+  the schema) become an inline `<svg>`, since HTML/CSS has no native way to paint
+  arbitrary path geometry.
+- `render-text.ts` — a `TextNode`'s `content.runs` become one `<span>` per run, each
+  carrying its own inline style — a direct mapping, since a `TextRun` is already defined
+  as "contiguous characters sharing one style."
+- `format-value.ts` — the only place numeric/color rounding happens. Real design-tool
+  data carries float noise (e.g. `39.999999994571226px`, see learning_v0.md #023);
+  pixels round to 2 decimals, color channels to 0-255 integers, so output stays
+  deterministic and readable rather than re-exposing upstream float drift.
+
+## Testing
+
+- `fixtures/*.json` — real, schema-valid `DesignNode[]` trees (validated against
+  `DesignNodeSchema` in the test itself, not assumed).
+- `golden/*.html` — the exact expected output for each fixture. A diff here requires an
+  explicit, reviewed update to the golden file, never a silent overwrite (context.md
+  §4.8).
+- `render-document.test.ts` also asserts determinism directly (render the same fixture
+  twice, expect byte-identical output) per §4.7 — not just a normal correctness check.
+
+## Known gaps
+
+- Only solid fills/strokes are mapped to CSS. Gradient and image fills exist in the
+  schema (`GradientFillSchema`, `ImageFillSchema`) but aren't rendered yet — a node with
+  only a gradient/image fill currently renders with no background at all rather than an
+  approximation. Tracked here, not silently guessed at.
+- Text auto-resize (`TextContent.autoResize`) is not mapped — every text node is sized
+  to its node geometry regardless of the `none`/`width-and-height`/`height`/`truncate`
+  value.
+- `ComponentNode`/`ComponentInstanceNode` render identically to `frame`/`group` — no
+  distinction is made between a component definition and an instance's overrides yet.

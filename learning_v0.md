@@ -929,3 +929,57 @@ callable and inspectable via MCP Inspector before any real client config is atte
 this is now genuinely satisfied for the first time — `028`'s stdio check was a reasonable
 stand-in given the constraints of that context, but it was never a full substitute, and
 this entry is the actual close-out of step 5's stated done-when.
+
+---
+
+## 2026-07-10 (session — starting step 6, HTML/CSS renderer)
+
+Step 5 (MCP server) confirmed done via real Inspector verification (`029`). Step 4
+(normalization) remains deliberately provisional per `027` — no agreed accuracy bar, draft
+labels unreviewed. User explicitly chose to start step 6 (renderers) anyway, the same
+"proceed with a named, provisional gap rather than block on it" call already made once for
+step 5. Design decisions confirmed with the user before writing code (not guessed): vector
+nodes render as inline `<svg>` (HTML/CSS can't natively paint arbitrary path data), one
+`DesignNode[]` → one full HTML document string per invocation (matches golden-file testing
+one fixture → one expected file), numbers rounded to a fixed precision (2 decimals for
+pixels, 0-255 integers for color channels) rather than preserving raw float noise.
+
+### 030 — First renderer bug: a `position: relative` declaration silently overrode `position: absolute` on the same element
+
+**What happened:** Every node renders as one absolutely-positioned `<div>`, since
+`PositionSchema` is parent-relative (schema/src/geometry.ts) and CSS `position: absolute`
++ `left`/`top` is the natural mapping. First draft additionally pushed an *unconditional*
+`{ prop: "position", value: "relative" }` onto every *container* node's declaration list
+(after its `position: absolute` from `geometryDeclarations`), on the theory that a
+container needs to "establish a positioning context" for its children. Running the first
+real fixture (a card containing a text node and a vector node) through the renderer and
+reading the actual generated CSS output caught it immediately: `#node-frame-1`'s rule had
+`position: absolute;` followed later by `position: relative;` — CSS keeps only the last
+declaration for a given property, so the frame's own placement silently reverted to
+default in-flow relative positioning, which would have visually broken every container
+node's position the moment this was rendered in a real browser (not caught by a
+type-checker or a naive "does it produce a string" test — only by reading the output).
+
+**Fix:** Removed the redundant declaration entirely. `position: absolute` already
+establishes a positioned-ancestor context for a node's own children (any CSS
+`position: absolute | relative | fixed | sticky` value does) — there was never a need for
+a second, conflicting declaration. `containerDeclarations` in `render-node.ts` now only
+adds `overflow: hidden` (for `clipsContent`) on top of the shared geometry/style
+declarations; the doc comment on `geometryDeclarations` (css-declarations.ts) was also
+wrong in the same way (described the old, incorrect design) and corrected in the same
+pass. Added a regression test (`render-document.test.ts`, "keeps a container's own
+position: absolute intact") asserting the generated CSS rule for a container node
+contains `position: absolute` and does not contain `position: relative`, so this exact
+class of silent-override bug can't reappear unnoticed.
+
+**Lesson:** A property that "sounds like it should be there" (a container "needs"
+`position: relative`, by the common web-dev pattern of using it on a fixed parent so
+absolutely-positioned children resolve against it) can be actively wrong once the actual
+values in play are considered — here, the container itself was *already* absolutely
+positioned, making the added declaration not just unnecessary but a same-property
+override that silently discarded the correct value. The bug was only visible by rendering
+a real fixture and reading the literal generated output, not by type-checking or running
+an assertion that merely checked "did this produce non-empty HTML" — this is the renderer
+equivalent of learning_v0.md's repeated theme (`001`/`006`/`012`/`018` etc.) that a design
+built from reasoning about the shape of a problem, without checking real output, is a
+hypothesis until verified against what actually comes out.

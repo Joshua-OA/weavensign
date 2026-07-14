@@ -10,7 +10,8 @@
     "adapters/penpot",
     "normalization",
     "eval",
-    "mcp-server"
+    "mcp-server",
+    "renderers/html-css"
   ],
   "engines": {
     "node": ">=20"

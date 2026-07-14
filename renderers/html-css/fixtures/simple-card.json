@@ -1,0 +1,82 @@
+[
+  {
+    "id": "frame-1",
+    "name": "Card",
+    "visible": true,
+    "locked": false,
+    "geometry": {
+      "position": { "x": 0, "y": 0 },
+      "size": { "width": 200, "height": 100 },
+      "rotationDegrees": 0
+    },
+    "type": "frame",
+    "style": {
+      "fills": [{ "type": "solid", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }],
+      "strokes": [{ "fill": { "type": "solid", "color": { "r": 0.8, "g": 0.8, "b": 0.8, "a": 1 } }, "weight": 1, "align": "center" }],
+      "effects": [],
+      "opacity": 1,
+      "cornerRadius": 8,
+      "blendMode": "normal"
+    },
+    "clipsContent": true,
+    "children": [
+      {
+        "id": "text-1",
+        "name": "Label",
+        "visible": true,
+        "locked": false,
+        "geometry": {
+          "position": { "x": 12, "y": 12 },
+          "size": { "width": 176, "height": 20 },
+          "rotationDegrees": 0
+        },
+        "type": "text",
+        "style": {
+          "fills": [{ "type": "solid", "color": { "r": 0.1, "g": 0.1, "b": 0.1, "a": 1 } }],
+          "strokes": [],
+          "effects": [],
+          "opacity": 1,
+          "blendMode": "normal"
+        },
+        "content": {
+          "runs": [
+            {
+              "characters": "Hello & <world>",
+              "style": {
+                "fontFamily": "Inter",
+                "fontWeight": 600,
+                "fontStyle": "normal",
+                "fontSizePx": 16,
+                "letterSpacingPx": 0,
+                "textDecoration": "none",
+                "textCase": "none"
+              }
+            }
+          ],
+          "align": "left",
+          "autoResize": "none"
+        }
+      },
+      {
+        "id": "vector-1",
+        "name": "Icon",
+        "visible": true,
+        "locked": false,
+        "geometry": {
+          "position": { "x": 12, "y": 40 },
+          "size": { "width": 24, "height": 24 },
+          "rotationDegrees": 0
+        },
+        "type": "vector",
+        "style": {
+          "fills": [{ "type": "solid", "color": { "r": 0.2, "g": 0.4, "b": 0.9, "a": 1 } }],
+          "strokes": [],
+          "effects": [],
+          "opacity": 1,
+          "blendMode": "normal"
+        },
+        "paths": [{ "data": "M0 0 L24 0 L24 24 L0 24 Z", "windingRule": "nonzero" }]
+      }
+    ]
+  }
+]
