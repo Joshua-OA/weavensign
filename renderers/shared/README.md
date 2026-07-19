@@ -39,7 +39,12 @@ precision change applied to one but not the other).
   and fixed in `renderer-html-css`'s first pass, see learning_v0.md #030). Only fills/
   gaps with real fixture data behind them are mapped — gradient fills and two of four
   `autoResize` values have zero real examples in the eval set and are left unmapped
-  rather than guessed at (context.md §7, learning_v0.md #031).
+  rather than guessed at (context.md §7, learning_v0.md #031). Image fills resolved to a
+  real URL (via `@weavensign/adapter-figma`'s `resolveImageFills` — checked by
+  `assetRef`'s own shape, not a schema field) render `background-image: url(...)` with
+  `background-size`/`background-repeat` mapped from `scaleMode` for the three real
+  values seen (`fill`, `stretch`, `tile`); an unresolved fill still gets the striped
+  placeholder.
 
 ## Testing
 

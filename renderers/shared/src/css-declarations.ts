@@ -59,15 +59,52 @@ const PLACEHOLDER_FILL_CSS: readonly CssDeclaration[] = [
 ];
 
 /**
+ * True when an ImageFill's assetRef has been resolved to a real, fetchable URL rather
+ * than left as Figma's raw opaque image hash — see
+ * @weavensign/adapter-figma's resolveImageFills. Checking the ref's own shape (does it
+ * look like a URL) rather than a separate schema field keeps ImageFillSchema unchanged
+ * (no version bump needed for this) — a renderer that receives an unresolved tree (no
+ * resolution step run, or a source other than Figma) sees a plain hash and falls back to
+ * the placeholder automatically, with no special-casing needed on the caller's side.
+ */
+function isResolvedImageUrl(assetRef: string): boolean {
+  return assetRef.startsWith("http://") || assetRef.startsWith("https://");
+}
+
+/**
+ * Maps ImageFillSchema.scaleMode to CSS background-size/background-repeat. Only `fill`,
+ * `stretch`, and `tile` have real fixture examples (11/5/1 in the Figma eval fixture,
+ * respectively) — `fit` and `crop` have zero, so per context.md §7's rule against
+ * building a mapping from a guess when no real data exists to check it against, they
+ * fall back to the same treatment as `fill` (the closest CSS default, `background-size:
+ * cover`) rather than inventing an untested shape for them.
+ */
+function imageScaleDeclarations(scaleMode: "fill" | "fit" | "crop" | "tile" | "stretch"): CssDeclaration[] {
+  switch (scaleMode) {
+    case "stretch":
+      return [{ prop: "background-size", value: "100% 100%" }];
+    case "tile":
+      return [
+        { prop: "background-size", value: "auto" },
+        { prop: "background-repeat", value: "repeat" },
+      ];
+    case "fill":
+    case "fit":
+    case "crop":
+      return [{ prop: "background-size", value: "cover" }];
+  }
+}
+
+/**
  * Maps a Style's fills/strokes/effects to CSS declarations. Solid fills/strokes map
  * directly to background-color/border. Gradient fills have no real fixture data yet
  * (context.md §7 — no accuracy claim, and by extension no rendering shape, should be
  * built from a guess when zero real examples exist to check it against) and are left
- * unrendered, same as before. Image fills are real (17 in the Figma eval fixture) but
- * assetRef is Figma's opaque internal image hash with no asset-resolution layer anywhere
- * in the project yet to turn it into a fetchable URL — rendering a broken <img> src would
- * be worse than nothing, so an image-only fill gets a visible striped placeholder instead,
- * to make the node's presence/geometry legible without pretending to show the real asset.
+ * unrendered, same as before. Image fills render the real asset via `background-image:
+ * url(...)` once resolved to a real URL (isResolvedImageUrl); an unresolved fill (still
+ * Figma's opaque internal image hash — no resolution step run, or a source that doesn't
+ * support one) falls back to a visible striped placeholder, so the node's presence/
+ * geometry stays legible without pretending to show an asset that can't be fetched.
  */
 export function styleDeclarations(style: Style): CssDeclaration[] {
   const declarations: CssDeclaration[] = [];
@@ -76,6 +113,9 @@ export function styleDeclarations(style: Style): CssDeclaration[] {
   const imageFill = style.fills.find((fill) => fill.type === "image");
   if (solidFill) {
     declarations.push({ prop: "background-color", value: formatColor(solidFill.color) });
+  } else if (imageFill && isResolvedImageUrl(imageFill.assetRef)) {
+    declarations.push({ prop: "background-image", value: `url("${imageFill.assetRef}")` });
+    declarations.push(...imageScaleDeclarations(imageFill.scaleMode));
   } else if (imageFill) {
     declarations.push(...PLACEHOLDER_FILL_CSS);
   }

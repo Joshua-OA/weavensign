@@ -1,26 +1,18 @@
 import * as t from "@babel/types";
 import type { CssDeclaration } from "@weavensign/renderer-shared";
 
-const CSS_PROP_TO_JS_PROP: Record<string, string> = {
-  "background-color": "backgroundColor",
-  "background-image": "backgroundImage",
-  "border-radius": "borderRadius",
-  "box-shadow": "boxShadow",
-  "font-family": "fontFamily",
-  "font-size": "fontSize",
-  "font-style": "fontStyle",
-  "font-weight": "fontWeight",
-  "letter-spacing": "letterSpacing",
-  "line-height": "lineHeight",
-  "mix-blend-mode": "mixBlendMode",
-  "text-align": "textAlign",
-  "text-decoration": "textDecoration",
-  "text-transform": "textTransform",
-};
-
-/** Converts a kebab-case CSS property name to the camelCase key React's inline style object expects (identical rule React itself documents: any hyphenated CSS property becomes camelCase, vendor prefixes aside). */
+/**
+ * Converts a kebab-case CSS property name to the camelCase key React's inline style
+ * object expects (identical rule React itself documents: any hyphenated CSS property
+ * becomes camelCase, vendor prefixes aside). A generic conversion, not a hand-maintained
+ * lookup table — the earlier lookup-table version silently produced wrong output
+ * (kebab-case bracket-quoted keys, e.g. `"background-size"`, instead of
+ * `backgroundSize`) the moment `renderer-shared` gained a property no one remembered to
+ * add to the table (background-size/background-repeat, added for resolved image-fill
+ * URLs) — a maintenance burden a general conversion doesn't have.
+ */
 function jsPropName(cssProp: string): string {
-  return CSS_PROP_TO_JS_PROP[cssProp] ?? cssProp;
+  return cssProp.replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
 }
 
 /**

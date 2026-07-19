@@ -26,6 +26,16 @@ guessing at semantic role — that's the normalization layer's job, later.
 3. `parse-figma-nodes.ts` is the public entry point: takes the raw HTTP response body
    (`unknown`) plus the file id and the node ids you requested, returns
    `Result<DesignNode[], ParseFigmaNodesError>`.
+4. `resolve-image-fills.ts` is a second, separate pure function:
+   `resolveImageFills(nodes, rawImageFillsResponse)` substitutes a real, fetchable URL
+   for any `ImageFillSchema.assetRef` that Figma's `GET /v1/files/:key/images` response
+   resolves — `assetRef` starts out as Figma's opaque internal image hash
+   (`map-paint.ts`'s `imageRef`, passed through unresolved), and this is the second API
+   call needed to turn that hash into something a renderer can actually display. Kept as
+   a separate function from `parseFigmaNodes` (not folded into node mapping) because it's
+   a genuinely different Figma endpoint resolving a different thing, called by
+   `mcp-server` only when the parsed tree actually has an image fill (see
+   `get-figma-design.ts`).
 
 Routine failures (a malformed response, a requested node id absent from the response, an
 instance whose `componentId` has no matching entry in the `components` map) are `Result`

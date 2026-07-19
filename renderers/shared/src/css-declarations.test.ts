@@ -78,6 +78,36 @@ describe("styleDeclarations", () => {
     expect(findDeclaration(declarations, "background-image")).toContain("repeating-linear-gradient");
   });
 
+  it("renders a resolved image fill as a real background-image url(), not a placeholder", () => {
+    const declarations = styleDeclarations(
+      makeStyle({ fills: [{ type: "image", assetRef: "https://example.com/photo.png", scaleMode: "fill" }] }),
+    );
+    expect(findDeclaration(declarations, "background-image")).toBe('url("https://example.com/photo.png")');
+    expect(findDeclaration(declarations, "background-color")).toBeUndefined();
+  });
+
+  it("maps a resolved 'stretch' scaleMode to background-size: 100% 100%", () => {
+    const declarations = styleDeclarations(
+      makeStyle({ fills: [{ type: "image", assetRef: "https://example.com/photo.png", scaleMode: "stretch" }] }),
+    );
+    expect(findDeclaration(declarations, "background-size")).toBe("100% 100%");
+  });
+
+  it("maps a resolved 'tile' scaleMode to background-repeat: repeat", () => {
+    const declarations = styleDeclarations(
+      makeStyle({ fills: [{ type: "image", assetRef: "https://example.com/photo.png", scaleMode: "tile" }] }),
+    );
+    expect(findDeclaration(declarations, "background-size")).toBe("auto");
+    expect(findDeclaration(declarations, "background-repeat")).toBe("repeat");
+  });
+
+  it("maps a resolved 'fill' scaleMode to background-size: cover", () => {
+    const declarations = styleDeclarations(
+      makeStyle({ fills: [{ type: "image", assetRef: "https://example.com/photo.png", scaleMode: "fill" }] }),
+    );
+    expect(findDeclaration(declarations, "background-size")).toBe("cover");
+  });
+
   it("prefers a solid fill over an image fill when both are present", () => {
     const declarations = styleDeclarations(
       makeStyle({

@@ -19,7 +19,12 @@ wires HTTP fetch + adapter + normalization together per tool call.
 
 - **`get_figma_design(fileKey, nodeId)`** — fetches one Figma node (and its descendants)
   via the REST API and maps it into a `DesignNode[]`. Requires `FIGMA_TOKEN` in the
-  server's environment.
+  server's environment. If the parsed tree has any image fill, makes a second call to
+  Figma's `GET /v1/files/:key/images` and resolves each `assetRef` to a real URL (see
+  `@weavensign/adapter-figma`'s `resolveImageFills`) — treated as an enhancement, not a
+  requirement: a failure on this second call still returns the successfully-parsed nodes
+  with unresolved (placeholder-rendering) image fills, rather than failing the whole
+  tool call over a secondary request.
 - **`get_penpot_page(fileId, pageId)`** — fetches one Penpot page via the `get-file` RPC
   command and maps its shape graph into a `DesignNode[]`. Requires `PENPOT_TOKEN`.
 - **`classify_roles(nodes)`** — runs the normalization heuristics against a `DesignNode[]`
@@ -39,9 +44,8 @@ not just unit-level function calls, so a client actually connecting and calling
 
 `FIGMA_TOKEN=... PENPOT_TOKEN=... npm run build && npm start` (stdio transport — point an
 MCP client, e.g. MCP Inspector, at the resulting process). Per context.md §2, step 5's
-done-when is "every tool listed and callable via MCP Inspector before any real client
-config is attempted" — hasn't been run through Inspector yet, do that before wiring a
-real client.
+done-when ("every tool listed and callable via MCP Inspector before any real client
+config is attempted") has been verified live — see learning_v0.md #029.
 
 ## Known gaps
 

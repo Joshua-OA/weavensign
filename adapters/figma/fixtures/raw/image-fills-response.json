@@ -1,0 +1,11 @@
+{
+  "error": false,
+  "status": 200,
+  "meta": {
+    "images": {
+      "25f24886b60bef4d77ebf1a1658997bb75772fb7": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/example-resolved-asset",
+      "65c9b2e2178b53eba63dace1c4f1d8c96673ade2": "https://figma-alpha-api.s3.us-west-2.amazonaws.com/images/example-resolved-asset-2",
+      "unresolvable-asset-ref": null
+    }
+  }
+}

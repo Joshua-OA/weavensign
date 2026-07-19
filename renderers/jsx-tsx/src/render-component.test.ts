@@ -68,6 +68,20 @@ describe("renderComponent", () => {
     expect(code).toContain("repeating-linear-gradient");
   });
 
+  it("matches the golden file for a resolved image fill (real background-image url)", async () => {
+    const nodes = loadFixture("image-fill-resolved");
+    expect(await renderComponent(nodes)).toBe(loadGolden("image-fill-resolved"));
+  });
+
+  it("renders a resolved image fill's CSS properties with camelCase keys, not kebab-case", async () => {
+    const nodes = loadFixture("image-fill-resolved");
+    const code = await renderComponent(nodes);
+    expect(code).toContain('backgroundImage: \'url("https://example.com/resolved-photo.png")\'');
+    expect(code).toContain('backgroundSize: "100% 100%"');
+    expect(code).not.toContain("background-size");
+    expect(code).not.toContain("background-image");
+  });
+
   it("matches the golden file for a real hug-contents (width-and-height autoResize) text node", async () => {
     const nodes = loadFixture("text-hug-contents");
     expect(await renderComponent(nodes)).toBe(loadGolden("text-hug-contents"));

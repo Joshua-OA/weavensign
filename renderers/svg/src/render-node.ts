@@ -3,7 +3,7 @@ import { assertNever, type DesignNode } from "@weavensign/schema";
 import { escapeXml } from "./escape-xml.js";
 import { renderText } from "./render-text.js";
 import { renderVector } from "./render-vector.js";
-import { attributesToXml, styleAttributes } from "./svg-attributes.js";
+import { attributesToXml, imagePreserveAspectRatio, isResolvedImageUrl, styleAttributes } from "./svg-attributes.js";
 
 function childrenOf(node: DesignNode): DesignNode[] {
   switch (node.type) {
@@ -26,17 +26,26 @@ function childrenOf(node: DesignNode): DesignNode[] {
  * background-color on the element itself. Only emitted when the container actually has
  * a fill; an empty style (fill: none via styleAttributes) would otherwise paint an
  * invisible-but-present rect for every plain group, which is harmless visually but
- * needless output.
+ * needless output. A resolved image fill (real URL, not Figma's raw hash) renders as a
+ * real <image> element instead of a filled <rect> — SVG shapes can't paint a raster URL
+ * as a `fill` attribute the way a CSS box can with `background-image`.
  */
 function renderContainerBackground(node: DesignNode): string {
   if (!("style" in node)) {
     return "";
   }
+  const imageFill = node.style.fills.find((fill) => fill.type === "image");
   const hasFill = node.style.fills.some((fill) => fill.type === "solid" || fill.type === "image");
   if (!hasFill) {
     return "";
   }
   const { width, height } = node.geometry.size;
+
+  if (imageFill && isResolvedImageUrl(imageFill.assetRef)) {
+    const aspectRatio = imagePreserveAspectRatio(imageFill.scaleMode);
+    return `<image width="${formatNumber(width)}" height="${formatNumber(height)}" href="${imageFill.assetRef}" preserveAspectRatio="${aspectRatio}"/>`;
+  }
+
   const attrs = attributesToXml(styleAttributes(node.style));
   const cornerAttr = node.style.cornerRadius !== undefined ? ` rx="${formatNumber(node.style.cornerRadius)}"` : "";
   return `<rect width="${formatNumber(width)}" height="${formatNumber(height)}"${cornerAttr} ${attrs}/>`;

@@ -67,6 +67,25 @@ describe("renderDocument", () => {
     expect(svg).toContain("#e5e5e5");
   });
 
+  it("matches the golden file for a resolved image fill (real <image> element)", () => {
+    const nodes = loadFixture("image-fill-resolved");
+    expect(renderDocument(nodes)).toBe(loadGolden("image-fill-resolved"));
+  });
+
+  it("renders a resolved image fill as a real <image> element, not the placeholder rect", () => {
+    const nodes = loadFixture("image-fill-resolved");
+    const svg = renderDocument(nodes);
+    expect(svg).toContain('href="https://example.com/resolved-photo.png"');
+    expect(svg).not.toContain("#e5e5e5");
+    expect(svg).not.toContain("<rect");
+  });
+
+  it("maps a resolved 'stretch' scaleMode to preserveAspectRatio='none'", () => {
+    const nodes = loadFixture("image-fill-resolved");
+    const svg = renderDocument(nodes);
+    expect(svg).toContain('preserveAspectRatio="none"');
+  });
+
   it("matches the golden file for a real hug-contents (width-and-height autoResize) text node", () => {
     const nodes = loadFixture("text-hug-contents");
     expect(renderDocument(nodes)).toBe(loadGolden("text-hug-contents"));

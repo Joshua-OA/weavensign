@@ -75,6 +75,18 @@ describe("renderDocument", () => {
     expect(html).toContain("repeating-linear-gradient");
   });
 
+  it("matches the golden file for a resolved image fill (real background-image url)", () => {
+    const nodes = loadFixture("image-fill-resolved");
+    expect(renderDocument(nodes)).toBe(loadGolden("image-fill-resolved"));
+  });
+
+  it("renders a resolved image fill as a real background-image, not the striped placeholder", () => {
+    const nodes = loadFixture("image-fill-resolved");
+    const html = renderDocument(nodes);
+    expect(html).toContain('url("https://example.com/resolved-photo.png")');
+    expect(html).not.toContain("repeating-linear-gradient");
+  });
+
   it("matches the golden file for a real hug-contents (width-and-height autoResize) text node", () => {
     const nodes = loadFixture("text-hug-contents");
     expect(renderDocument(nodes)).toBe(loadGolden("text-hug-contents"));

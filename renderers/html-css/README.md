@@ -69,14 +69,20 @@ byte (context.md §4.7).
 
 ## Known gaps
 
-- Solid fills/strokes map directly to CSS. Image fills (`ImageFillSchema`) render as a
-  visible striped placeholder, not the real image — `assetRef` is Figma's opaque
-  internal image hash, and no asset-resolution layer exists anywhere in this project yet
-  to turn it into a fetchable URL, so a real `<img src>` isn't possible without that
-  layer being built first (a bigger, separate scope than this renderer). Gradient fills
-  (`GradientFillSchema`) have zero real examples in any eval fixture so far — per
-  context.md §7's rule against building from a guess when no real data exists to check
-  it against, they're left unrendered until a real one shows up.
+- Solid fills/strokes map directly to CSS. Image fills (`ImageFillSchema`) render the
+  real asset via `background-image: url(...)` once `assetRef` has been resolved to a
+  real URL (see `@weavensign/adapter-figma`'s `resolveImageFills` — a separate
+  asset-resolution step the MCP server runs before returning nodes, not this renderer's
+  own job). An *unresolved* fill (still Figma's opaque internal image hash — no
+  resolution step run, or a source without one) falls back to a visible striped
+  placeholder rather than a broken `<img src>`; the renderer tells the two cases apart
+  by checking whether `assetRef` looks like a URL, not a schema-level flag. `scaleMode`
+  maps to `background-size`/`background-repeat` for the three values with real fixture
+  coverage (`fill`, `stretch`, `tile`); `fit`/`crop` have zero real examples and fall
+  back to `fill`'s treatment. Gradient fills (`GradientFillSchema`) have zero real
+  examples in any eval fixture so far — per context.md §7's rule against building from a
+  guess when no real data exists to check it against, they're left unrendered until a
+  real one shows up.
 - Text auto-resize: `none` (fixed box) and `width-and-height` (hug contents, both
   dimensions) are mapped — both have real fixture coverage. `height` and `truncate` have
   zero real examples in any eval fixture and are left unmapped for the same reason as

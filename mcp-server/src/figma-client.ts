@@ -25,3 +25,30 @@ export async function fetchFigmaNodes(
   const body: unknown = await response.json();
   return ok(body);
 }
+
+export type FetchFigmaImageFillsError =
+  | { kind: "missing-token" }
+  | { kind: "http-error"; status: number; body: string };
+
+/**
+ * Fetches the raw `GET /v1/files/:key/images` response — a map of every image-fill
+ * asset hash in the file to a real, signed download URL. Separate call from
+ * `fetchFigmaNodes` because it's a genuinely different Figma endpoint resolving a
+ * different thing (image-fill assets, not node structure), not an optional param on the
+ * nodes fetch.
+ */
+export async function fetchFigmaImageFills(
+  fileKey: string,
+  token: string | undefined,
+): Promise<Result<unknown, FetchFigmaImageFillsError>> {
+  if (!token) {
+    return err({ kind: "missing-token" });
+  }
+  const url = `https://api.figma.com/v1/files/${fileKey}/images`;
+  const response = await fetch(url, { headers: { "X-Figma-Token": token } });
+  if (!response.ok) {
+    return err({ kind: "http-error", status: response.status, body: await response.text() });
+  }
+  const body: unknown = await response.json();
+  return ok(body);
+}

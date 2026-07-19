@@ -50,7 +50,11 @@ byte (context.md §4.7).
   before this fix (see the doc comment on `renderRunSpan` and learning_v0.md).
 - `style-object.ts` — converts a `CssDeclaration[]` into a Babel `ObjectExpression` for a
   `style={{...}}` attribute, translating each kebab-case CSS property name to the
-  camelCase key React expects.
+  camelCase key React expects via a generic regex conversion, not a hand-maintained
+  lookup table — the original lookup-table version silently produced wrong output
+  (bracket-quoted kebab-case keys) the moment `renderer-shared` gained a property no one
+  remembered to add to the table (`background-size`/`background-repeat`, added for
+  resolved image-fill URLs).
 
 ## Testing
 
@@ -70,13 +74,15 @@ byte (context.md §4.7).
 
 ## Known gaps
 
-Same three as `renderer-html-css`, inherited from the same missing-data/missing-
-infrastructure reasons (see that package's README for the full explanation, and
-learning_v0.md #031 for why they weren't guessed at instead):
+Same as `renderer-html-css`, inherited from the same missing-data/missing-infrastructure
+reasons (see that package's README for the full explanation, and learning_v0.md #031 for
+why they weren't guessed at instead):
 
 - Gradient fills unrendered (zero real fixture examples).
-- Image fills render a striped placeholder, not the real asset (no asset-resolution
-  layer exists anywhere in the project).
 - Text `autoResize` values `height`/`truncate` unmapped (zero real fixture examples).
 - `ComponentNode`/`ComponentInstanceNode` render identically to `frame`/`group` — no
   distinction made between a component definition and an instance's overrides.
+
+Image fills render the real asset (via the same resolved-URL check as
+`renderer-html-css`) once `@weavensign/adapter-figma`'s `resolveImageFills` has run; an
+unresolved fill still falls back to the striped placeholder.

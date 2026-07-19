@@ -53,13 +53,21 @@ element rather than reusing `renderer-shared`'s CSS-declaration functions:
   regardless of `autoResize`, a real, documented behavioral difference from the other two
   renderers, not an oversight.
 - `svg-attributes.ts` — `Style` → SVG presentation attributes. Same fill-priority and
-  known-gap rules as the other renderers (gradient fills unmapped, image fills get a
-  placeholder — here a flat `#e5e5e5` fill, since SVG has no `repeating-linear-gradient`
-  shorthand the way CSS does; a striped placeholder would need a `<pattern>` def, out of
-  scope for a "can't resolve this asset yet" stand-in). One SVG-specific correctness
-  detail: SVG's `fill` initial value is *black*, not transparent like CSS
-  `background-color` — a node with no fill at all gets an explicit `fill="none"`, not an
-  omitted attribute, or every unfilled shape would render solid black.
+  known-gap rules as the other renderers (gradient fills unmapped, unresolved image
+  fills get a placeholder — here a flat `#e5e5e5` fill, since SVG has no
+  `repeating-linear-gradient` shorthand the way CSS does; a striped placeholder would
+  need a `<pattern>` def, out of scope for a "can't resolve this asset yet" stand-in).
+  One SVG-specific correctness detail: SVG's `fill` initial value is *black*, not
+  transparent like CSS `background-color` — a node with no fill at all gets an explicit
+  `fill="none"`, not an omitted attribute, or every unfilled shape would render solid
+  black. A *resolved* image fill (real URL, via `@weavensign/adapter-figma`'s
+  `resolveImageFills`) can't be expressed as a `fill` attribute at all — SVG shapes
+  can't paint a raster URL as a fill the way a CSS box can with `background-image` — so
+  `render-node.ts` emits a real `<image href="...">` element instead of a filled
+  `<rect>` in that case, with `preserveAspectRatio` mapped from `scaleMode` (real
+  coverage for `stretch`→`none` and `fill`/`tile`→`xMidYMid slice`; `tile`'s real
+  CSS-repeat behavior has no SVG `<image>` equivalent without a `<pattern>` def, same
+  class of gap as the placeholder stripe pattern).
 - `escape-xml.ts` — XML text/attribute escaping (`&`, `<`, `>`, `"`) — a different rule
   set than HTML's (SVG is XML, stricter about what's allowed unescaped in text content).
 
@@ -77,9 +85,9 @@ element rather than reusing `renderer-shared`'s CSS-declaration functions:
 
 ## Known gaps
 
-Three shared with the other renderers (gradient fills, image-fill asset resolution,
-component-instance override rendering — see their READMEs and learning_v0.md #031 for
-why), plus two specific to this renderer:
+Two shared with the other renderers (gradient fills, component-instance override
+rendering — see their READMEs and learning_v0.md #031 for why), plus two specific to
+this renderer:
 
 - Text baseline position is an approximation (`fontSizePx * 0.8`), not derived from real
   font metrics — the schema has no ascent/descent/baseline field to compute one exactly.
