@@ -141,3 +141,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Generated label-review pages (eval/generate-review.ts output) — local artifact, not source
+eval/review/

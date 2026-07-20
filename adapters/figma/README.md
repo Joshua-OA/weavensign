@@ -52,6 +52,12 @@ errors, never thrown — see context.md §4.6.
   as an `invalid-response` error, not a silent drop.
 - Paint kinds beyond SOLID/gradient*/IMAGE (e.g. Figma's newer video fills) are similarly
   rejected at parse time.
+- `resolveImageFills`: a ref with no entry in `GET /v1/files/:key/images`'s response, or
+  an entry explicitly `null` (Figma's documented "unresolvable" case), is left as its
+  original opaque hash rather than erroring — the whole `resolveImageFills` call only
+  fails on a malformed response shape, never on a per-ref miss. Renderers tell resolved
+  apart from unresolved by checking whether `assetRef` looks like a URL and fall back to
+  a placeholder for the latter (see each renderer's README).
 
 ## Fixtures
 
