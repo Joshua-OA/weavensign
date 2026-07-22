@@ -32,6 +32,9 @@
     "@weavensign/adapter-penpot": "0.1.0"
   },
   "devDependencies": {
-    "tsx": "4.23.0"
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "tsx": "4.23.0",
+    "typescript-eslint": "^8.65.0"
   }
 }

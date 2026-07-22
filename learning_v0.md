@@ -1478,3 +1478,65 @@ exists for X" lesson already established — it applies just as much to *closing
 item as to opening one. A "known gap" that fails safe (`Result` error) but is undocumented
 is a documentation bug, not a functionality bug — worth fixing, but a much smaller and
 different fix than the punch list implied.
+
+### 046 — Adding the first CI gate found `npm run lint` was broken repo-wide, and typechecking `apply-review.ts` found a real type-contract gap
+
+**What happened:** Punch list's last open item was "no CI/dependency-audit/security-review
+gate exercised yet." Before writing a workflow file, ran every script CI would call
+(`build`, `typecheck`, `lint`, `test`, `npm audit`) locally first — the same "verify before
+trusting" discipline as every other session in this log, applied to infrastructure instead
+of application code. Two real, pre-existing problems surfaced immediately, both by running
+the scripts rather than reading them: (1) four `package.json`s (`schema`, both adapters,
+`normalization`) declared `"lint": "eslint src"` but eslint was never installed and no
+config existed anywhere in the repo — `npm run lint` failed with `eslint: command not
+found` on every one of them, meaning "lint" had silently never actually run, possibly since
+whichever commit first added those scripts. (2) `npm run typecheck` failed on
+`eval/apply-review.ts` (added last session, `cf4ce39`): `RoleAssignment` requires a
+`confidence: number` field, but ground-truth label files (`eval/labels/*.json`, human-
+authored) never had one, and `apply-review.ts`'s merged output — a real construction site,
+not just a read — correctly tripped the compiler on the missing field. Grepped for
+`.confidence` across the whole normalization/eval surface and found it's consumed nowhere
+today; only `classify-node.ts`'s three classifier calls actually populate it (real
+heuristic predictions, which do need a confidence score). Made `confidence` optional on
+the interface — ground truth isn't a probability estimate, there was never a real value to
+put there — rather than fabricating a placeholder number to satisfy the compiler.
+
+Fixed (1) by installing `eslint` + `typescript-eslint` as root devDependencies and adding
+one flat `eslint.config.mjs` (not `.js` — avoids a `MODULE_TYPELESS_PACKAGE_JSON` perf
+warning without touching root `package.json`'s module type, which other root-level scripts
+like `fetch-figma-live.ts` didn't need changed). Running the now-real lint caught one
+genuine dead import (`RawTransform` in `adapters/penpot/src/map-geometry.ts`) — a real, if
+tiny, finding from a gate that had never actually run before.
+
+`npm audit` separately found 7 vulnerabilities, all transitive (`@modelcontextprotocol/sdk`
+→ `@hono/node-server`; `vitest`/`vite` → `esbuild`). `npm audit fix` (non-breaking) cleared
+the `fast-uri` one. The rest needed a real major-version bump — asked the user rather than
+force-fixing blind, since `npm audit fix --force` would have also silently downgraded the
+actual MCP SDK to clear the Hono chain, a functional regression disguised as a security
+fix. User approved fixing the dev-tooling chain (vitest 2→4 across all 10 workspaces) to
+get CI's audit gate green today, while leaving the SDK's own Hono dependency (Windows-only
+path-traversal, moderate, no forced downgrade) as a tracked, accepted gap rather than
+breaking the real runtime dependency to satisfy the gate. Full test suite (112 tests) still
+passed after the vitest bump — checked, not assumed a major version bump is safe.
+
+Before trusting the workflow file itself, copied the whole repo to a scratch directory,
+deleted every `node_modules`, ran `npm ci` (proving the lockfile alone reproduces the same
+install CI would get, not "install after already having a warm node_modules") and then the
+exact sequence the workflow runs — build, typecheck, lint, test, `npm audit
+--audit-level=critical` — confirming every step exits 0 in a clean environment before
+writing that claim down anywhere.
+
+**Lesson:** Three points. (1) A script existing in `package.json` proves nothing about
+whether it has ever successfully run — `lint` had been silently broken long enough that no
+one noticed, because nothing was gating on it; the first real value of adding a CI gate was
+finding out the repo's *existing* scripts didn't actually work, before ever getting to new
+checks. (2) Writing a construction site against a type (not just reading through it) is
+what makes a strict type system earn its keep — `score.ts`'s existing `JSON.parse(...) as
+RoleAssignment[]` cast had papered over the same missing-`confidence` gap for as long as
+labels files existed, because casts on a *read* never get checked against the literal
+shape; only `apply-review.ts`'s object-literal *construction* forced the compiler to look.
+(3) A security/dependency gate should never be satisfied by force-fixing blind — `npm audit
+fix --force`'s own output named the exact regression (a real SDK downgrade) before it was
+run, and reading that output before running it is what caught it; the fix that makes a gate
+green has to be evaluated on its own merits, the same as any other change, not treated as
+automatically safe because a security tool suggested it.

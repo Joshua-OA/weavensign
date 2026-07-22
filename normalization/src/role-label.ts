@@ -19,6 +19,10 @@ export type RoleLabel = (typeof ROLE_LABELS)[number];
 export interface RoleAssignment {
   nodeId: string;
   role: RoleLabel;
-  /** 0–1 confidence; heuristics that are certain should still report a value, not omit it. */
-  confidence: number;
+  /**
+   * 0–1 confidence; heuristics that are certain should still report a value, not omit it.
+   * Omitted for human-authored ground truth (eval/labels/*.json) — a human's label isn't
+   * a probability estimate, so there's nothing real to put here.
+   */
+  confidence?: number;
 }

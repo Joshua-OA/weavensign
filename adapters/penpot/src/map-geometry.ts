@@ -1,5 +1,5 @@
 import type { Geometry } from "@weavensign/schema";
-import type { RawSelrect, RawTransform } from "./raw-geometry.js";
+import type { RawSelrect } from "./raw-geometry.js";
 import type { RawShape } from "./raw-shape.js";
 
 const RADIANS_PER_DEGREE = Math.PI / 180;
