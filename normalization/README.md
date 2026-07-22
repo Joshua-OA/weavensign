@@ -74,7 +74,8 @@ group (Penpot's `message-6`, which just wraps the real `Group-3` input pill) —
 exists for "this group's only child is itself an input-field," a one-off shape not worth
 generalizing from a single example yet; (3) `other` precision/recall on the dashboard
 fixture (0.41/0.38) is still weak — largely the same background-rect confusion as (1).
-**Those eval labels are still an unreviewed AI draft, not human-verified ground truth**
-(see `/eval/README.md` Status) — treat every number above as a rough baseline to improve
-from, not a proven accuracy claim, until the labels are reviewed and more varied fixtures
-are added.
+**Labels for the Figma and Penpot-dashboard fixtures are now human-reviewed** (see
+`/eval/README.md` Status) — the numbers above are real accuracy claims per context.md §7,
+not a draft baseline. `penpot-logo-artwork`'s labels remain an unreviewed AI draft (low
+risk given the fixture is almost entirely `image`/`other`). More varied fixtures are
+still needed to trust these numbers as representative of a deployed normalization layer.

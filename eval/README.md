@@ -55,14 +55,15 @@ Three fixtures fetched, anonymized, and labeled:
   Figma-only tuning (see learning_v0.md #022): button/avatar/nav-item recall near zero on
   first score against it, despite strong scores on the Figma fixture.
 
-**Caveat: current labels are an unreviewed AI-drafted first pass, not human-verified
-ground truth.** They were assigned by reading node name/type/text/geometry — the same
-signals a heuristic would use — so a heuristic tuned against these labels risks matching
-labeling logic rather than real design-authoring signal, and any precision/recall number
-computed against them should not yet be treated as a real accuracy claim per context.md §7.
-Before this eval set is relied on to gate a heuristic change:
-1. A human should review and correct `labels/*.json` against the fixtures.
-2. More fixtures (more files, varied authors/naming conventions, non-English content,
-   different design-tool idioms) should be added — three files, two from the same
-   underlying Penpot template, is still a thin sample of what a deployed normalization
-   layer will see.
+**Review status:** `figma-ecommerce-landing.json` and `penpot-dashboard-ui.json` have
+been human-reviewed against their fixtures (via `eval/generate-review.ts` +
+`eval/apply-review.ts`) and confirmed correct as originally drafted — zero labels changed
+on review. Precision/recall numbers computed against these two are real accuracy claims
+per context.md §7. `penpot-logo-artwork.json` remains an unreviewed AI draft (low risk:
+the fixture is almost entirely `image`/`other`, a near-trivial labeling case), and should
+be reviewed before being relied on for anything beyond a rough sanity check.
+
+More fixtures (more files, varied authors/naming conventions, non-English content,
+different design-tool idioms) should still be added — three files, two from the same
+underlying Penpot template, is still a thin sample of what a deployed normalization layer
+will see.
