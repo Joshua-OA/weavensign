@@ -1437,3 +1437,44 @@ reality before calling it done" discipline as every adapter session in this log
 (`011`/`012`, most directly) — worth running once at the end of a feature that spans
 multiple packages, even when every individual package's own test suite is green,
 because green unit tests only prove each piece works alone.
+
+---
+
+## 2026-07-22 (session — human-reviewing eval labels, then re-checking the component-instance-override punch-list item)
+
+### 045 — The "component-instance overrides don't render" punch-list item was stale; the real, narrower gap is cross-file component resolution, and it was already undocumented rather than unhandled
+
+**What happened:** Standing punch list carried "component-instance overrides don't render
+— instance customization invisible in all 3 renderers, blocked on Figma adapter's
+cross-file component gap (`010`)" as a known-broken item. Before starting any fix, checked
+whether it was still true. It wasn't: `schema/src/nodes.ts`'s `ComponentInstanceNode`
+already carries a resolved `overrides` field plus the instance's own real `children` tree;
+`map-node.ts`'s `INSTANCE` case already builds that `children` array from the raw node's
+actual (already-override-applied) subtree, exactly as Figma's REST API returns it — Figma
+serves each instance's real content directly, not a diff against the component
+definition, so there was never a second resolution step to write. All three renderers'
+`render-node.ts` already treat `component-instance` identically to `frame`/`group`
+(render own style + full children recursively). Pulled the real `figma-ecommerce-landing`
+fixture's 8 component-instance nodes, found one (`225:297`, variant `"Hovered"`) with a
+genuinely different child structure and fill than the other four (`"Default"` variant,
+same `componentKey`) sharing the same base component, rendered the whole fixture through
+`renderer-html-css`, and confirmed the two instances' CSS rules differ exactly as their
+source data does (`225:297` has no `background-color`; `189:161` does) — real proof, not
+inference from reading the code. The only actual unhandled case is `INSTANCE.componentId`
+resolving to a component defined in a *different* file (a shared library) than the one
+being parsed — `map-node.ts` already returns a `Result` error
+(`unresolved-component-reference`) for that case rather than crashing or guessing, it just
+wasn't listed in `adapters/figma/README.md`'s "Known gaps" section, so nothing surfaced it
+as intentional, tracked, already-safe behavior. Added it there.
+
+**Lesson:** A punch-list entry written while a real blocker was still upstream (image-fill
+resolution, closed in the prior session) can go stale without anyone updating it — the
+entry described the *shape* of a plausible gap correctly (cross-file components are
+involved) but was wrong about *where* the gap actually was (adapter error-handling
+correctness, not renderer override logic) once the actual code was read end-to-end instead
+of re-trusted from memory. Before starting work on any "known gap," re-verify it's still a
+gap with real fixture data and an actual render, the same discipline `031`'s "no real data
+exists for X" lesson already established — it applies just as much to *closing* a punch-list
+item as to opening one. A "known gap" that fails safe (`Result` error) but is undocumented
+is a documentation bug, not a functionality bug — worth fixing, but a much smaller and
+different fix than the punch list implied.

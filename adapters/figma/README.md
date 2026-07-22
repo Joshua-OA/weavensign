@@ -58,6 +58,14 @@ errors, never thrown — see context.md §4.6.
   fails on a malformed response shape, never on a per-ref miss. Renderers tell resolved
   apart from unresolved by checking whether `assetRef` looks like a URL and fall back to
   a placeholder for the latter (see each renderer's README).
+- Cross-file component instances (`INSTANCE.componentId` pointing at a component defined
+  in a different file than the one being parsed, e.g. a shared library) aren't resolved —
+  `context.components` is only ever populated from the current file's own `components`
+  map, so a cross-file reference has no matching entry and `mapNode` returns an
+  `unresolved-component-reference` `Result` error (fails safe, never silently wrong).
+  Same-file instances — including ones with real property/variant overrides — map and
+  render correctly today; this gap is specifically about instances whose *definition*
+  lives outside the requested file.
 
 ## Fixtures
 
