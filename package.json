@@ -10,11 +10,11 @@
     "adapters/penpot",
     "normalization",
     "eval",
-    "mcp-server",
     "renderers/shared",
     "renderers/html-css",
     "renderers/jsx-tsx",
-    "renderers/svg"
+    "renderers/svg",
+    "mcp-server"
   ],
   "engines": {
     "node": ">=20"
@@ -32,8 +32,8 @@
     "@weavensign/adapter-penpot": "0.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
-    "eslint": "^9.39.5",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
     "tsx": "4.23.0",
     "typescript-eslint": "^8.65.0"
   }

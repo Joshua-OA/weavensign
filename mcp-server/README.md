@@ -1,19 +1,16 @@
 # @weavensign/mcp-server
 
-One job: expose the Figma/Penpot adapters and the normalization layer to MCP clients as
-callable tools, over stdio for local dev. No inference or mapping logic of its own — it
-wires HTTP fetch + adapter + normalization together per tool call.
+One job: expose the Figma/Penpot adapters, the normalization layer, and the renderers to
+MCP clients as callable tools, over stdio for local dev. No inference, mapping, or
+rendering logic of its own — it wires HTTP fetch + adapter + normalization + renderer
+together per tool call.
 
 ## May import
 
 - `@weavensign/schema`, `@weavensign/adapter-figma`, `@weavensign/adapter-penpot`,
-  `@weavensign/normalization`.
+  `@weavensign/normalization`, `@weavensign/renderer-html-css`,
+  `@weavensign/renderer-jsx-tsx`, `@weavensign/renderer-svg`.
 - `@modelcontextprotocol/sdk`, `zod`.
-
-## Must never import
-
-- `/renderers`. Renderers are a separate consumer of the canonical schema; the MCP
-  server doesn't generate code, only fetches and classifies design data.
 
 ## Tools
 
@@ -32,6 +29,13 @@ wires HTTP fetch + adapter + normalization together per tool call.
   Deliberately a separate tool, not bundled into the fetch tools — keeps the "no
   inference" adapter boundary and the heuristic normalization boundary visible at the
   tool-call level, not just in the module graph.
+- **`render_design(nodes, format)`** — renders a `DesignNode[]` into real source:
+  `"html-css"` (HTML + inline CSS), `"jsx-tsx"` (a single React function component), or
+  `"svg"` (a single SVG document). Returns the rendered source as plain text (not
+  JSON-wrapped — see `tool-result.ts`'s `textToolResult`), so a client writes it straight
+  to a file. Takes the same `DesignNode[]` shape the fetch tools return — role labels from
+  `classify_roles` aren't required as input (no renderer reads role today) but nothing
+  stops passing the same tree through both.
 
 Routine failures (missing token, HTTP error, adapter rejecting an unrecognized node
 shape) are returned as `{ isError: true }` tool results with a human-readable message,

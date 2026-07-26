@@ -23,6 +23,9 @@
     "@weavensign/adapter-figma": "0.1.0",
     "@weavensign/adapter-penpot": "0.1.0",
     "@weavensign/normalization": "0.1.0",
+    "@weavensign/renderer-html-css": "0.1.0",
+    "@weavensign/renderer-jsx-tsx": "0.1.0",
+    "@weavensign/renderer-svg": "0.1.0",
     "@weavensign/schema": "0.2.0",
     "zod": "4.4.3"
   },

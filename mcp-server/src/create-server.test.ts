@@ -19,10 +19,10 @@ describe("createServer", () => {
     client = await connectedClient();
   });
 
-  it("registers get_figma_design, get_penpot_page, and classify_roles", async () => {
+  it("registers get_figma_design, get_penpot_page, classify_roles, and render_design", async () => {
     const { tools } = await client.listTools();
     const names = tools.map((tool) => tool.name).sort();
-    expect(names).toEqual(["classify_roles", "get_figma_design", "get_penpot_page"]);
+    expect(names).toEqual(["classify_roles", "get_figma_design", "get_penpot_page", "render_design"]);
   });
 
   it("get_figma_design reports a missing-token error as a tool error, not a thrown exception", async () => {
@@ -65,5 +65,25 @@ describe("createServer", () => {
     const content = result.content as Array<{ type: string; text: string }>;
     const assignments = JSON.parse(content[0]!.text) as Array<{ nodeId: string; role: string }>;
     expect(assignments).toEqual([{ nodeId: "1", role: "icon", confidence: expect.any(Number) }]);
+  });
+
+  it("render_design renders a DesignNode tree to HTML+CSS source, not JSON", async () => {
+    const nodes: DesignNode[] = [
+      {
+        id: "1",
+        name: "icon",
+        visible: true,
+        locked: false,
+        geometry: { position: { x: 0, y: 0 }, size: { width: 20, height: 20 }, rotationDegrees: 0 },
+        type: "vector",
+        style: { fills: [], strokes: [], effects: [], opacity: 1, blendMode: "normal" },
+        paths: [{ data: "M0 0", windingRule: "nonzero" }],
+      },
+    ];
+    const result = await client.callTool({ name: "render_design", arguments: { nodes, format: "html-css" } });
+    expect(result.isError).toBeFalsy();
+    const content = result.content as Array<{ type: string; text: string }>;
+    expect(content[0]!.text).toContain("<!DOCTYPE html>");
+    expect(content[0]!.text).toContain("node-1");
   });
 });

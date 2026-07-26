@@ -7,6 +7,11 @@ export function jsonToolResult(value: unknown): ToolResult {
   return { content: [{ type: "text", text: JSON.stringify(value, null, 2) }] };
 }
 
+/** Wraps a plain-text value (e.g. rendered source code) as a successful MCP tool result, unlike jsonToolResult, without JSON-stringifying it. */
+export function textToolResult(text: string): ToolResult {
+  return { content: [{ type: "text", text }] };
+}
+
 /** Wraps a human-readable message as a failed MCP tool result (§4.6: routine failures are values, surfaced to the client rather than thrown). */
 export function errorToolResult(message: string): ToolResult {
   return { content: [{ type: "text", text: message }], isError: true };

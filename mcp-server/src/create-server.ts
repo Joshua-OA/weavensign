@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CLASSIFY_ROLES_INPUT_SHAPE, classifyRoles } from "./tools/classify-roles.js";
 import { GET_FIGMA_DESIGN_INPUT_SHAPE, getFigmaDesign } from "./tools/get-figma-design.js";
 import { GET_PENPOT_PAGE_INPUT_SHAPE, getPenpotPage } from "./tools/get-penpot-page.js";
+import { RENDER_DESIGN_INPUT_SHAPE, renderDesign } from "./tools/render-design.js";
 
 /** Builds the weavensign MCP server with every tool registered, unconnected to any transport. */
 export function createServer(): McpServer {
@@ -38,6 +39,17 @@ export function createServer(): McpServer {
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
     classifyRoles,
+  );
+
+  server.registerTool(
+    "render_design",
+    {
+      title: "Render design",
+      description: "Render a DesignNode tree into real source: HTML+CSS, a JSX/TSX React component, or an SVG document.",
+      inputSchema: RENDER_DESIGN_INPUT_SHAPE,
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    renderDesign,
   );
 
   return server;
