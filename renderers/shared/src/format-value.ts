@@ -4,7 +4,7 @@ const PX_DECIMALS = 2;
 
 /**
  * Rounds a raw geometry/style number to a fixed, deterministic precision. Real design-tool
- * data carries float noise (e.g. Penpot's 39.999999994571226px, see learning_v0.md #023) —
+ * data carries float noise (e.g. Penpot's 39.999999994571226px, see learning_v2.md #023) —
  * rounding here is what keeps renderer output stable and readable rather than re-exposing
  * upstream float drift byte-for-byte.
  */

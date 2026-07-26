@@ -45,8 +45,8 @@ function resolveNode(node: DesignNode, urlsByRef: Map<string, string>): DesignNo
  * Figma's opaque internal image hash (passed through unresolved by `map-paint.ts`,
  * `imageRef`); this is the second, separate API call needed to turn that hash into
  * something a renderer can actually fetch/display, per the gap named in
- * learning_v0.md #031/#037-#039's "no asset-resolution layer exists" note across all
- * three renderers. Refs with no match in the response (or an explicitly null resolution
+ * learning_v4.md #031 / learning_v5.md #037-#039's "no asset-resolution layer exists"
+ * note across all three renderers. Refs with no match in the response (or an explicitly null resolution
  * — see raw-image-fills-response.ts) are left as their original hash, unchanged; a
  * renderer distinguishes "resolved" from "still a raw hash" by checking whether
  * `assetRef` looks like a URL, not via a schema-level flag (kept schema stable —

@@ -22,7 +22,7 @@ const BUTTON_BG_WIDTH_RATIO = 0.85;
  * classify-container.ts's looksLikeButton uses on the parent — checked here from the
  * vector's own side because classify-node.ts classifies each node independently and this
  * vector would otherwise fall into the size-based `image` fallback below (see
- * learning_v0.md #024's deferred parent-context gap).
+ * learning_v3.md #024's deferred parent-context gap).
  */
 function isButtonBackgroundShape(node: VectorNode, parent: DesignNode | undefined): boolean {
   if (!parent || !("children" in parent) || parent.children.length !== 2) return false;
@@ -39,7 +39,7 @@ function isButtonBackgroundShape(node: VectorNode, parent: DesignNode | undefine
 /**
  * True when a vector's own name literally identifies it as an avatar. Penpot's stock
  * dashboard template names avatar shapes `icon_avatar` (a boolean-unioned circle
- * flattened to one path by the time it reaches the API, see learning_v0.md #021) — a
+ * flattened to one path by the time it reaches the API, see learning_v2.md #021) — a
  * real, generalizable authoring convention, not a fixture-specific label to special-case.
  */
 function isAvatarShape(node: VectorNode): boolean {
@@ -55,7 +55,7 @@ function isAvatarShape(node: VectorNode): boolean {
  * shape (Penpot's `bg` / `bg-2` / `bg-3` ... naming convention for a card/row/button's
  * backdrop rect, distinct from a real content rect like `Rect-N`/`Circle-N`/`graph`).
  * A large `bg`-named rect would otherwise fall into this function's size-based `image`
- * fallback (see learning_v0.md #024) even though it's never real image content — it's
+ * fallback (see learning_v3.md #024) even though it's never real image content — it's
  * the flat-color panel a card's real content (text, other vectors) sits on top of.
  */
 function isNamedBackgroundShape(node: VectorNode): boolean {

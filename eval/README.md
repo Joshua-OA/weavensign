@@ -52,7 +52,7 @@ Three fixtures fetched, anonymized, and labeled:
 - `penpot-dashboard-ui.json` — real Penpot dashboard UI (search, stat pills, nav, calendar,
   message cards, task form, buttons, avatars), 389 nodes — the only fixture exercising
   `avatar` and `input-field`, and the fixture that exposed the normalization heuristic's
-  Figma-only tuning (see learning_v0.md #022): button/avatar/nav-item recall near zero on
+  Figma-only tuning (see learning_v2.md #022): button/avatar/nav-item recall near zero on
   first score against it, despite strong scores on the Figma fixture.
 
 **Review status:** `figma-ecommerce-landing.json` and `penpot-dashboard-ui.json` have

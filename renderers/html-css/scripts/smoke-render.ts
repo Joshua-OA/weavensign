@@ -3,8 +3,8 @@
  * (not this package's own small golden fixtures) and reports whether it crashes, how long it
  * takes, and whether the output is structurally well-formed. Not a golden-file test — these
  * fixtures are too large to review byte-for-byte; this is the same "does it survive contact
- * with real, previously-unexercised data" check learning_v0.md's adapter sessions ran before
- * calling an adapter done. Not part of build/test — run directly with
+ * with real, previously-unexercised data" check the learning log's adapter sessions ran
+ * (learning_v0.md #011/#012) before calling an adapter done. Not part of build/test — run directly with
  * `npx tsx renderers/html-css/scripts/smoke-render.ts`.
  */
 import { readFileSync, readdirSync } from "node:fs";

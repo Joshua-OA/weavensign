@@ -24,7 +24,7 @@ function childrenOf(node: DesignNode): DesignNode[] {
  * A container's own `position: absolute` (from geometryDeclarations) already establishes
  * a positioned-ancestor context for its children — same reasoning as
  * renderer-html-css's render-node.ts, no separate `position: relative` needed (see
- * learning_v0.md #030 for the bug that reasoning fixed).
+ * learning_v4.md #030 for the bug that reasoning fixed).
  */
 function containerDeclarations(node: DesignNode): CssDeclaration[] {
   const declarations = [...geometryDeclarations(node.geometry)];

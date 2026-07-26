@@ -28,7 +28,7 @@ SVG has no `position: absolute` equivalent — its native coordinate model is ne
 `transform="translate(x, y)"`, which maps directly onto `PositionSchema`'s
 parent-relative convention without needing the "does a node's own rule also establish a
 positioning context for its children" reasoning the HTML/JSX renderers need (see
-learning_v0.md #030). Because of that, and because SVG's fill/stroke are attributes on
+learning_v4.md #030). Because of that, and because SVG's fill/stroke are attributes on
 shapes, not CSS box-model properties, this renderer's mapping is written from scratch per
 element rather than reusing `renderer-shared`'s CSS-declaration functions:
 
@@ -86,7 +86,7 @@ element rather than reusing `renderer-shared`'s CSS-declaration functions:
 ## Known gaps
 
 Two shared with the other renderers (gradient fills, component-instance override
-rendering — see their READMEs and learning_v0.md #031 for why), plus two specific to
+rendering — see their READMEs and learning_v4.md #031 for why), plus two specific to
 this renderer:
 
 - Text baseline position is an approximation (`fontSizePx * 0.8`), not derived from real

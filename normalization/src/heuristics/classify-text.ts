@@ -24,7 +24,7 @@ function matchesAnyWord(text: string, words: string[]): boolean {
  * badges are usually recognizable by a pill/dot-shaped background the text sits in, which
  * needs fill/shape data this function doesn't have. A tried parent-container-size signal
  * for this was removed after live scoring showed it never actually fired on real badge
- * text (see learning_v0.md #020) — badge detection for text nodes is left as a known gap
+ * text (see learning_v2.md #020) — badge detection for text nodes is left as a known gap
  * rather than forcing an unreliable guess.
  */
 export function classifyText(node: TextNode): { role: RoleLabel; confidence: number } {

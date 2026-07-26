@@ -38,7 +38,7 @@ byte (context.md §4.7).
 - `render-node.ts` — per-node-type dispatch via `switch` + `assertNever` (context.md
   §4.1), building JSX AST nodes instead of the HTML string templates
   `renderer-html-css` builds. Same `position: absolute`-only composition strategy (see
-  that package's README and learning_v0.md #030 for why no `position: relative` is ever
+  that package's README and learning_v4.md #030 for why no `position: relative` is ever
   needed).
 - `render-svg-vector.ts` — a `VectorNode`'s `paths` become a real JSX `<svg>` element
   (AST nodes, not a template string) — same reasoning as `renderer-html-css`'s version:
@@ -47,7 +47,7 @@ byte (context.md §4.7).
   **Text content is wrapped as a JS string literal inside a `{}` expression container,
   not raw JSX text** — a bare `<` inside JSXText breaks parsing entirely, which crashed
   this renderer's own golden-fixture generation on a real "Hello & \<world\>" string
-  before this fix (see the doc comment on `renderRunSpan` and learning_v0.md).
+  before this fix (see the doc comment on `renderRunSpan` and learning_v5.md #035).
 - `style-object.ts` — converts a `CssDeclaration[]` into a Babel `ObjectExpression` for a
   `style={{...}}` attribute, translating each kebab-case CSS property name to the
   camelCase key React expects via a generic regex conversion, not a hand-maintained
@@ -75,7 +75,7 @@ byte (context.md §4.7).
 ## Known gaps
 
 Same as `renderer-html-css`, inherited from the same missing-data/missing-infrastructure
-reasons (see that package's README for the full explanation, and learning_v0.md #031 for
+reasons (see that package's README for the full explanation, and learning_v4.md #031 for
 why they weren't guessed at instead):
 
 - Gradient fills unrendered (zero real fixture examples).
