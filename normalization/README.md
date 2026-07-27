@@ -44,7 +44,7 @@ precision/recall, rebuild the package first with `npm run build` in `/normalizat
 Three fixtures: `figma-ecommerce-landing.json` (Figma, button/card/nav-heavy),
 `penpot-logo-artwork.json` (Penpot, pure-artwork/image-only, no interactive UI),
 `penpot-dashboard-ui.json` (Penpot, real app dashboard UI — button/avatar/input-field/
-nav-item coverage). The dashboard fixture was added (learning_v2.md #022) specifically to
+nav-item coverage). The dashboard fixture was added (dev_process/learning_v2.md #022) specifically to
 prove whether a heuristic tuned only against the first two fixtures generalizes to a
 different tool's structural authoring conventions — initially it didn't (button/avatar/
 nav-item all scored ~0 on first contact, #022), which drove structural (not textual)

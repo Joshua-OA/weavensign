@@ -100,7 +100,7 @@ describe("classifyVector", () => {
     expect(classifyVector(notAvatar, 1, undefined).role).toBe("image");
   });
 
-  it("classifies a button's own full-width background rect as other, not image (learning_v3.md #024)", () => {
+  it("classifies a button's own full-width background rect as other, not image (dev_process/learning_v3.md #024)", () => {
     const bg = makeVector(140, 42, { name: "Rect-9" });
     const parent = makeButtonParent(bg, 140, 42);
     expect(classifyVector(bg, 1, parent).role).toBe("other");

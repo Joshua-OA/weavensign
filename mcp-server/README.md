@@ -49,7 +49,7 @@ not just unit-level function calls, so a client actually connecting and calling
 `FIGMA_TOKEN=... PENPOT_TOKEN=... npm run build && npm start` (stdio transport — point an
 MCP client, e.g. MCP Inspector, at the resulting process). Per context.md §2, step 5's
 done-when ("every tool listed and callable via MCP Inspector before any real client
-config is attempted") has been verified live — see learning_v4.md #029.
+config is attempted") has been verified live — see dev_process/learning_v4.md #029.
 
 ## Known gaps
 
@@ -58,4 +58,4 @@ config is attempted") has been verified live — see learning_v4.md #029.
 - `classify_roles`' accuracy is whatever `/normalization`'s current heuristics score
   against the eval set (see that package's README) — normalization was deliberately not
   blocked on a full accuracy bar or human-reviewed labels before this server was built
-  (see learning_v3.md #027); this tool inherits that same known limitation.
+  (see dev_process/learning_v3.md #027); this tool inherits that same known limitation.

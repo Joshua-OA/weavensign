@@ -12,7 +12,7 @@ interface PenpotGetFileResponse {
 /**
  * Fetches one Penpot page's `objects` map plus the file's shared `components`, via
  * Penpot's `get-file` RPC command. `Accept: application/json` switches Penpot's response
- * from its default Transit-JSON wire format to plain JSON (see learning_v0.md #007).
+ * from its default Transit-JSON wire format to plain JSON (see dev_process/learning_v0.md #007).
  */
 export async function fetchPenpotPage(
   fileId: string,

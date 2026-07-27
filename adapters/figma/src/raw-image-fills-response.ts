@@ -7,7 +7,7 @@ import { z } from "zod";
  * non-null). `meta.images[ref]` is documented by Figma as nullable for a ref it couldn't
  * resolve (e.g. a deleted asset) — kept `.nullable()` even though zero nulls appeared in
  * the live sample, since a single sample proving a shape doesn't prove every value the
- * field can take (learning_v0.md #006's lesson) and Figma's own docs state this case
+ * field can take (dev_process/learning_v0.md #006's lesson) and Figma's own docs state this case
  * exists.
  */
 export const RawImageFillsResponseSchema = z.object({

@@ -28,7 +28,7 @@ precision change applied to one but not the other).
 
 - `format-value.ts` — the only place numeric/color rounding happens (`formatPx`,
   `formatNumber`, `formatColor`). Real design-tool data carries float noise (e.g.
-  `39.999999994571226px`, see learning_v2.md #023); output is rounded to a fixed,
+  `39.999999994571226px`, see dev_process/learning_v2.md #023); output is rounded to a fixed,
   deterministic precision (2 decimals for pixels/numbers, 0-255 integers for color
   channels) rather than re-exposing upstream float drift.
 - `css-declarations.ts` — `geometryDeclarations`, `textDeclarations`,
@@ -36,10 +36,10 @@ precision change applied to one but not the other).
   per `PositionSchema`'s parent-relative convention; `position: absolute` on a node's own
   declarations also establishes the positioned-ancestor context its children resolve
   against, so no separate `position: relative` declaration is ever needed (a bug caught
-  and fixed in `renderer-html-css`'s first pass, see learning_v4.md #030). Only fills/
+  and fixed in `renderer-html-css`'s first pass, see dev_process/learning_v4.md #030). Only fills/
   gaps with real fixture data behind them are mapped — gradient fills and two of four
   `autoResize` values have zero real examples in the eval set and are left unmapped
-  rather than guessed at (context.md §7, learning_v4.md #031). Image fills resolved to a
+  rather than guessed at (context.md §7, dev_process/learning_v4.md #031). Image fills resolved to a
   real URL (via `@weavensign/adapter-figma`'s `resolveImageFills` — checked by
   `assetRef`'s own shape, not a schema field) render `background-image: url(...)` with
   `background-size`/`background-repeat` mapped from `scaleMode` for the three real
@@ -57,8 +57,8 @@ just as much. Extracting the package was also the trigger to close that gap.
 
 `fixtures/*.json` — real, schema-valid `DesignNode[]` trees, built from real nodes
 pulled from `/eval/fixtures` (see each fixture's originating node id in
-`renderer-html-css`'s and `renderer-jsx-tsx`'s learning log entries, `learning_v4.md`/
-`learning_v5.md`). Live here, not in either renderer package, because both renderers test
+`renderer-html-css`'s and `renderer-jsx-tsx`'s learning log entries, `dev_process/learning_v4.md`/
+`dev_process/learning_v5.md`). Live here, not in either renderer package, because both renderers test
 against the exact same inputs —
 each renderer keeps its own `golden/` output next to its own tests, but the input data
 is one shared source, not two copies to keep in sync by hand.

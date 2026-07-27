@@ -49,3 +49,12 @@ environment.
 
 See `mcp-server/README.md` for details, and each package's own README for how the
 pipeline fits together.
+
+## Dev process log
+
+`dev_process/` holds `learning_v0.md` through `learning_v7.md` — a running, append-only
+log of bugs hit and decisions made while building this project. Each entry is dated and
+numbered (entry number is the stable citation key, e.g. "learning_v4.md #030"); code
+comments and READMEs across the repo cite entries there to explain *why* something is
+built the way it is. Never rewritten, only appended to — split into a new file once the
+current one nears ~200 lines.

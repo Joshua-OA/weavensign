@@ -32,7 +32,7 @@ byte (context.md §4.7).
   §4.1). Every node becomes one absolutely-positioned `<div>`; `position: absolute` on a
   node's own rule is what establishes the positioned-ancestor context its children's
   `left`/`top` resolve against, so no node ever needs a separate `position: relative`
-  declaration (a mistake caught during this package's first pass — see learning_v4.md #030).
+  declaration (a mistake caught during this package's first pass — see dev_process/learning_v4.md #030).
 - `@weavensign/renderer-shared`'s `css-declarations.ts` — `Geometry`/`Style` → CSS
   declaration list (plain data, not strings yet). Lives in the shared package now, not
   here.
@@ -64,7 +64,7 @@ byte (context.md §4.7).
   (too large to review byte-for-byte), just checked for crashes, balanced HTML tags, no
   literal `undefined`/`NaN` leaking into output, and render time. Same "survive contact
   with real, previously-unexercised data" check the adapter sessions ran before calling
-  an adapter done (learning_v1.md #011/#012). Not part of `npm test`; a manual
+  an adapter done (dev_process/learning_v1.md #011/#012). Not part of `npm test`; a manual
   verification tool, same pattern as `eval/run-heuristic.ts`.
 
 ## Known gaps

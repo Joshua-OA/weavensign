@@ -46,7 +46,7 @@ function isAllVectorChildren(node: DesignNode): boolean {
  * (icon or background) that spans nearly the full container width, in a small/medium
  * pill-like size range. The full-width-background check is what separates a real button
  * (background rect sized to the label) from a same-size icon+label nav/breadcrumb pair,
- * where the icon is much narrower than its neighboring text (see learning_v2.md #022/#023).
+ * where the icon is much narrower than its neighboring text (see dev_process/learning_v2.md #022/#023).
  */
 function looksLikeButton(node: DesignNode): boolean {
   if (!("children" in node) || node.children.length !== 2) return false;
@@ -79,7 +79,7 @@ function looksLikeBadge(node: DesignNode): boolean {
 /**
  * True when a container looks like an icon-group nav item: small square, made entirely
  * of vector children (no text — Penpot represents nav icons as background+path vector
- * groups, see learning_v2.md #022), and repeated several times among siblings (a nav rail).
+ * groups, see dev_process/learning_v2.md #022), and repeated several times among siblings (a nav rail).
  */
 function looksLikeNavItem(node: DesignNode, siblings: DesignNode[]): boolean {
   const { width, height } = node.geometry.size;
