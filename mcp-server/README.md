@@ -46,8 +46,16 @@ not just unit-level function calls, so a client actually connecting and calling
 
 ## Running
 
-`FIGMA_TOKEN=... PENPOT_TOKEN=... npm run build && npm start` (stdio transport — point an
-MCP client, e.g. MCP Inspector, at the resulting process). Per context.md §2, step 5's
+The published package is a single bundled bin (`weavensign`) with two modes:
+
+- `npx -y @weavensign/mcp-server` — stdio MCP server (what clients point at).
+- `npx -y @weavensign/mcp-server setup` — interactive token onboarding: prompts for
+  Figma/Penpot tokens, live-validates each before saving, and stores them in
+  `~/.weavensign/credentials.json` (0600).
+
+Tokens resolve per tool call: env var (`FIGMA_TOKEN` / `PENPOT_TOKEN`) first, then the
+stored credentials. From a clone, the same entry point is
+`node dist/server.js [setup]` after `npm run build`. Per context.md §2, step 5's
 done-when ("every tool listed and callable via MCP Inspector before any real client
 config is attempted") has been verified live — see dev_process/learning_v4.md #029.
 

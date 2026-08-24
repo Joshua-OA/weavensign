@@ -5,27 +5,34 @@ semantic roles (button, card, icon, ...), and renders to HTML/CSS, JSX/TSX, or S
 
 ## Setup
 
+Install and configure in two commands — no clone needed:
+
 ```bash
-npm install
-npm run build
+npx -y @weavensign/mcp-server setup
 ```
 
-## Get API tokens
+**Figma connects via browser OAuth — including automatically mid-session**: if a tool is
+called with no stored credentials and `FIGMA_CLIENT_ID` / `FIGMA_CLIENT_SECRET` are
+visible to the server, it opens figma.com in your browser, waits for approval, stores the
+refreshable session, and transparently retries your original request. Requires a free
+one-time OAuth app registration:
 
-- **Figma**: generate a personal access token at
-  [figma.com/developers/api#access-tokens](https://www.figma.com/developers/api#access-tokens)
-  (Figma account → Settings → Personal access tokens).
-- **Penpot**: generate an access token in your
-  [Penpot account settings](https://design.penpot.app/#/settings/access-tokens)
-  (only Penpot Cloud is supported today, not self-hosted instances).
+1. Create an app at [figma.com/developers/apps](https://www.figma.com/developers/apps)
+2. Add redirect URL `http://localhost:55887/callback`
+3. Export `FIGMA_CLIENT_ID` / `FIGMA_CLIENT_SECRET`, rerun setup
+
+**Paste still works everywhere** — browser login failing or unconfigured falls back to
+pasting a personal access token (validated live before saving), and Penpot is
+paste-only today (its API has no third-party OAuth yet).
+
+Tokens/credentials live in `~/.weavensign/credentials.json` (permissions 0600). You enter
+each credential once, ever. Environment variables (`FIGMA_TOKEN` / `PENPOT_TOKEN`)
+always take precedence over the store for CI/containers.
 
 ## Add to Claude Code
 
 ```bash
-claude mcp add weavensign \
-  -e FIGMA_TOKEN=your_figma_token \
-  -e PENPOT_TOKEN=your_penpot_token \
-  -- node /absolute/path/to/weavensign/mcp-server/dist/server.js
+claude mcp add weavensign -- npx -y @weavensign/mcp-server
 ```
 
 Verify it's connected:
@@ -34,9 +41,21 @@ Verify it's connected:
 claude mcp list
 ```
 
-Any MCP-compatible client works the same way — point it at
-`mcp-server/dist/server.js` over stdio with `FIGMA_TOKEN`/`PENPOT_TOKEN` in its
-environment.
+Any MCP-compatible client works the same way — point it at `npx -y @weavensign/mcp-server`
+over stdio. Bun users: `bunx @weavensign/mcp-server`.
+
+## Developing from a clone
+
+```bash
+npm install
+npm run build
+npm run test
+```
+
+Run the local build directly: `node mcp-server/dist/server.js` (stdio), or
+`node mcp-server/dist/server.js setup` for onboarding. Releases publish automatically via
+GitHub Actions when a tag matching the package version is pushed (`v0.1.0` → publishes
+`@weavensign/mcp-server@0.1.0`).
 
 ## Tools
 

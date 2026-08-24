@@ -1,8 +1,30 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import type { DesignNode } from "@weavensign/schema";
-import { beforeEach, describe, expect, it } from "vitest";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createServer } from "./create-server.js";
+
+// Auto-connect is mocked at the module boundary so tests control whether the "seamless
+// browser login" path reports success; the real implementation needs a TTY + browser.
+let connectOutcome = false;
+let connectAttempts = 0;
+vi.mock("./connect-figma.js", () => ({
+  ensureFigmaConnected: () => {
+    connectAttempts += 1;
+    return connectOutcome;
+  },
+}));
+
+/**
+ * Points the credential store at an empty throwaway dir so resolveToken can't fall back
+ * to a developer's real ~/.weavensign tokens during tests that expect "no token".
+ */
+function isolateCredentialStore(): void {
+  process.env.WEAVENSIGN_CONFIG_DIR = join(mkdtempSync(join(tmpdir(), "ws-test-")), "config");
+}
 
 async function connectedClient(): Promise<Client> {
   const client = new Client({ name: "test-client", version: "0.0.0" });
@@ -26,6 +48,7 @@ describe("createServer", () => {
   });
 
   it("get_figma_design reports a missing-token error as a tool error, not a thrown exception", async () => {
+    isolateCredentialStore();
     const previousToken = process.env.FIGMA_TOKEN;
     delete process.env.FIGMA_TOKEN;
     try {
@@ -37,6 +60,7 @@ describe("createServer", () => {
   });
 
   it("get_penpot_page reports a missing-token error as a tool error, not a thrown exception", async () => {
+    isolateCredentialStore();
     const previousToken = process.env.PENPOT_TOKEN;
     delete process.env.PENPOT_TOKEN;
     try {
@@ -44,6 +68,36 @@ describe("createServer", () => {
       expect(result.isError).toBe(true);
     } finally {
       if (previousToken !== undefined) process.env.PENPOT_TOKEN = previousToken;
+    }
+  });
+
+  it("get_figma_design attempts the automatic browser connection on missing token, then retries", async () => {
+    isolateCredentialStore();
+    connectOutcome = true;
+    connectAttempts = 0;
+    try {
+      // The mocked connection "succeeds" but stores no real credentials, so the retried
+      // fetch legitimately ends in missing-token again — what matters here is that the
+      // tool ENGAGED the auto-connect path exactly once and did retry instead of
+      // giving up after the first fetch.
+      await client.callTool({ name: "get_figma_design", arguments: { fileKey: "abc", nodeId: "1:2" } });
+      expect(connectAttempts).toBe(1);
+    } finally {
+      connectOutcome = false;
+    }
+  });
+
+  it("get_figma_design does not engage auto-connect when credentials exist (env var wins)", async () => {
+    isolateCredentialStore();
+    process.env.FIGMA_TOKEN = "some-pat";
+    connectAttempts = 0;
+    try {
+      const result = await client.callTool({ name: "get_figma_design", arguments: { fileKey: "abc", nodeId: "1:2" } });
+      const text = (result.content as Array<{ text: string }>)[0]?.text ?? "";
+      expect(text).toContain("Figma API error");
+      expect(connectAttempts).toBe(0);
+    } finally {
+      delete process.env.FIGMA_TOKEN;
     }
   });
 

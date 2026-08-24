@@ -1,6 +1,7 @@
 import { parseFigmaNodes, resolveImageFills } from "@weavensign/adapter-figma";
 import { assertNever, type DesignNode } from "@weavensign/schema";
 import { z } from "zod";
+import { ensureFigmaConnected } from "../connect-figma.js";
 import { fetchFigmaImageFills, fetchFigmaNodes } from "../figma-client.js";
 import { errorToolResult, jsonToolResult, type ToolResult } from "./tool-result.js";
 
@@ -34,7 +35,8 @@ function hasImageFill(node: DesignNode): boolean {
 
 /**
  * Fetches one Figma node (and its descendants) via the REST API and maps it into the
- * canonical DesignNode schema. Requires FIGMA_TOKEN in the server's environment.
+ * canonical DesignNode schema. Auth resolves via figma-auth: FIGMA_TOKEN env var, then
+ * stored PAT/OAuth credentials (OAuth refreshes automatically on expiry/401).
  *
  * If the tree has any image fills, makes a second call to resolve their `assetRef`
  * (Figma's opaque internal image hash) into a real, fetchable URL — see
@@ -48,10 +50,18 @@ function hasImageFill(node: DesignNode): boolean {
  * handling of that value, not a silently swallowed error).
  */
 export async function getFigmaDesign(input: GetFigmaDesignInput): Promise<ToolResult> {
-  const fetched = await fetchFigmaNodes(input.fileKey, input.nodeId, process.env.FIGMA_TOKEN);
+  let fetched = await fetchFigmaNodes(input.fileKey, input.nodeId);
+  if (!fetched.ok && fetched.error.kind === "missing-token") {
+    // Seamless first-run: open the browser for OAuth; on success retry transparently.
+    if (await ensureFigmaConnected()) {
+      fetched = await fetchFigmaNodes(input.fileKey, input.nodeId);
+    }
+  }
   if (!fetched.ok) {
     if (fetched.error.kind === "missing-token") {
-      return errorToolResult("FIGMA_TOKEN is not set in the server's environment.");
+      return errorToolResult(
+        "No Figma connection. Either set FIGMA_CLIENT_ID/FIGMA_CLIENT_SECRET to enable automatic browser login, or run `npx @weavensign/mcp-server setup` to paste a personal access token.",
+      );
     }
     return errorToolResult(`Figma API error (${fetched.error.status}): ${fetched.error.body}`);
   }
@@ -65,7 +75,7 @@ export async function getFigmaDesign(input: GetFigmaDesignInput): Promise<ToolRe
     return jsonToolResult(parsed.value);
   }
 
-  const fetchedImageFills = await fetchFigmaImageFills(input.fileKey, process.env.FIGMA_TOKEN);
+  const fetchedImageFills = await fetchFigmaImageFills(input.fileKey);
   if (!fetchedImageFills.ok) {
     return jsonToolResult(parsed.value);
   }

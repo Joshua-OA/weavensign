@@ -1,24 +1,26 @@
 import { err, ok, type Result } from "@weavensign/schema";
+import { authorizedFigmaFetch } from "./figma-auth.js";
 
 export type FetchFigmaNodesError =
   | { kind: "missing-token" }
   | { kind: "http-error"; status: number; body: string };
 
 /**
- * Fetches raw node JSON from Figma's REST API for one file/node pair. Requires
- * `geometry=paths` in the request — without it Figma omits `fillGeometry` (see
- * @weavensign/adapter-figma's parseFigmaNodes doc comment).
+ * Fetches raw node JSON from Figma's REST API for one file/node pair. Auth (env var,
+ * stored PAT, or stored OAuth token with proactive/reactive refresh) is handled by
+ * authorizedFigmaFetch. Requires `geometry=paths` in the request — without it Figma
+ * omits `fillGeometry` (see @weavensign/adapter-figma's parseFigmaNodes doc comment).
  */
 export async function fetchFigmaNodes(
   fileKey: string,
   nodeId: string,
-  token: string | undefined,
 ): Promise<Result<unknown, FetchFigmaNodesError>> {
-  if (!token) {
+  const response = await authorizedFigmaFetch(
+    `https://api.figma.com/v1/files/${fileKey}/nodes?ids=${nodeId}&geometry=paths`,
+  );
+  if (!response) {
     return err({ kind: "missing-token" });
   }
-  const url = `https://api.figma.com/v1/files/${fileKey}/nodes?ids=${nodeId}&geometry=paths`;
-  const response = await fetch(url, { headers: { "X-Figma-Token": token } });
   if (!response.ok) {
     return err({ kind: "http-error", status: response.status, body: await response.text() });
   }
@@ -39,13 +41,11 @@ export type FetchFigmaImageFillsError =
  */
 export async function fetchFigmaImageFills(
   fileKey: string,
-  token: string | undefined,
 ): Promise<Result<unknown, FetchFigmaImageFillsError>> {
-  if (!token) {
+  const response = await authorizedFigmaFetch(`https://api.figma.com/v1/files/${fileKey}/images`);
+  if (!response) {
     return err({ kind: "missing-token" });
   }
-  const url = `https://api.figma.com/v1/files/${fileKey}/images`;
-  const response = await fetch(url, { headers: { "X-Figma-Token": token } });
   if (!response.ok) {
     return err({ kind: "http-error", status: response.status, body: await response.text() });
   }

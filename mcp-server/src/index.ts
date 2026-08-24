@@ -1,4 +1,5 @@
 export * from "./create-server.js";
+export * from "./credentials.js";
 export * from "./figma-client.js";
 export * from "./penpot-client.js";
 export * from "./tools/classify-roles.js";
