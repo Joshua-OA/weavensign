@@ -67,6 +67,10 @@ describe("ensureFigmaConnected", () => {
     expect(stored.figmaToken).toBe("at-1");
     expect(stored.figmaRefreshToken).toBe("rt-1");
     expect(stored.figmaAuthKind).toBe("oauth");
+    // App credentials persist too so the runtime refresher works in future sessions
+    // that don't inherit these env vars.
+    expect(stored.figmaClientId).toBe("cid");
+    expect(stored.figmaClientSecret).toBe("csecret");
   });
 
   it("reports failure through stderr and returns false when the user declines", async () => {

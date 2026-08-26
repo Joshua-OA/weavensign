@@ -220,28 +220,27 @@ export async function configureService(
   deps: { readHiddenImpl?: typeof readHidden } = {},
 ): Promise<ConfigureOutcome> {
   const readHiddenImpl = deps.readHiddenImpl ?? readHidden;
-  if (!(await askYesNo(rl, plan.askPrompt, true))) {
-    return { kind: "none" };
+
+  // When browser auth is available, skip prompts and go straight to browser.
+  if (plan.browserAuth) {
+    try {
+      console.log(`Connecting to ${plan.label}...`);
+      process.stdout.write(`Opening ${plan.label} in your browser... `);
+      const tokens = await plan.browserAuth();
+      // Best-effort account display; the exchange already proved the token works.
+      const verified = await validateFigmaToken(tokens.accessToken, fetch, "oauth");
+      console.log(verified.ok ? `connected (${verified.value.account})\n` : `connected.\n`);
+      return { kind: "oauth", tokens };
+    } catch (error) {
+      console.log(`${plan.label} browser login failed: ${describeOAuthFailure(error)}.`);
+      console.log("Falling back to pasting a personal access token.\n");
+      return pasteLoop(rl, plan, readHiddenImpl);
+    }
   }
 
-  if (plan.browserAuth) {
-    const answer = await ask(
-      rl,
-      `Use [1] browser login (${plan.label} opens and you approve once) or [2] paste a personal access token? [1] `,
-    );
-    if (answer === "" || answer === "1") {
-      try {
-        process.stdout.write(`Waiting for ${plan.label} authorization... `);
-        const tokens = await plan.browserAuth();
-        // Best-effort account display; the exchange already proved the token works.
-        const verified = await validateFigmaToken(tokens.accessToken, fetch, "oauth");
-        console.log(verified.ok ? `connected (${verified.value.account})\n` : `connected.\n`);
-        return { kind: "oauth", tokens };
-      } catch (error) {
-        console.log(`${plan.label} browser login failed: ${describeOAuthFailure(error)}.`);
-        console.log("Falling back to pasting a personal access token.\n");
-      }
-    }
+  // No browser auth available — ask before prompting for token.
+  if (!(await askYesNo(rl, plan.askPrompt, true))) {
+    return { kind: "none" };
   }
 
   return pasteLoop(rl, plan, readHiddenImpl);
@@ -352,6 +351,12 @@ export async function runSetup(): Promise<void> {
       }
 
       if (changed) {
+        // Persist the OAuth app credentials alongside the session: the runtime refresher
+        // needs them, and future server sessions may not inherit these env vars.
+        if (credentials.figmaAuthKind === "oauth" && clientId && clientSecret) {
+          credentials.figmaClientId = clientId;
+          credentials.figmaClientSecret = clientSecret;
+        }
         await writeCredentials(credentials);
       }
 

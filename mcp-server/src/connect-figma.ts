@@ -19,6 +19,9 @@ export interface ConnectFigmaDeps {
 let inFlight: Promise<boolean> | null = null;
 
 async function persistTokens(tokens: FigmaOAuthTokens): Promise<void> {
+  const stored = await readCredentials();
+  const clientId = process.env.FIGMA_CLIENT_ID ?? stored.figmaClientId;
+  const clientSecret = process.env.FIGMA_CLIENT_SECRET ?? stored.figmaClientSecret;
   const creds = await readCredentials();
   creds.figmaToken = tokens.accessToken;
   if (tokens.refreshToken !== undefined) {
@@ -28,6 +31,14 @@ async function persistTokens(tokens: FigmaOAuthTokens): Promise<void> {
     creds.figmaExpiresAt = tokens.expiresAt;
   }
   creds.figmaAuthKind = "oauth";
+  // Persist the app credentials too: the runtime refresher needs them long after this
+  // process is gone, and future server sessions may not inherit these env vars.
+  if (clientId !== undefined) {
+    creds.figmaClientId = clientId;
+  }
+  if (clientSecret !== undefined) {
+    creds.figmaClientSecret = clientSecret;
+  }
   await writeCredentials(creds);
 }
 

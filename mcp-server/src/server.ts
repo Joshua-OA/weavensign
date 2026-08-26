@@ -1,4 +1,5 @@
 import "./cjs-shim.js";
+import { loadEnvFile } from "./load-env.js";
 
 /**
  * Thin dispatcher so ONE published bin serves both entry points (multiple bins would
@@ -7,6 +8,7 @@ import "./cjs-shim.js";
  * literal first arg "setup" runs the interactive token onboarding flow instead.
  */
 async function main(): Promise<void> {
+  loadEnvFile();
   if (process.argv[2] === "setup") {
     const { runSetup } = await import("./setup.js");
     await runSetup();
